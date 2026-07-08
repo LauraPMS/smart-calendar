@@ -1,0 +1,1 @@
+// Ce fichier contient la logique des endpoints (GET, POST)
