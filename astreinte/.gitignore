@@ -1,0 +1,11 @@
+# Fichiers de compilation Rust (Les plats cuisinés, très lourds !)
+/target/
+**/*.rs.bk
+
+# Variables d'environnement (Les clés de la maison)
+.env
+
+# Base de données locale (On ne push pas les données réelles !)
+astreintes.db
+astreintes.db-shm
+astreintes.db-wal

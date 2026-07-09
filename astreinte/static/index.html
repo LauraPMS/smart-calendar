@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="fr" class="h-full bg-slate-900 text-slate-100">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion des Astreintes SSI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="h-full flex flex-col font-sans">
+
+    <header class="flex items-center justify-between border-b border-slate-800 bg-slate-950 px-6 py-4">
+        <h1 class="text-xl font-bold tracking-tight text-indigo-400">Astreintes SSI</h1>
+        <div class="flex items-center gap-4">
+            <span class="text-sm text-slate-400">Session : <strong class="text-slate-200">Admin</strong></span>
+            <button class="rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500">Créer un compte</button>
+        </div>
+    </header>
+
+    <main class="flex-1 flex flex-col p-6 overflow-y-auto">
+        
+        <div class="flex flex-wrap items-center justify-between gap-4 mb-6 bg-slate-950 p-4 rounded-xl border border-slate-800">
+            
+            <div class="flex items-center gap-3">
+                <button onclick="changeDate(-1)" class="p-2 bg-slate-800 hover:bg-slate-700 rounded-lg text-slate-300 transition">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                </button>
+                
+                <button id="week-display" class="px-4 py-2 bg-slate-800 hover:bg-indigo-900 border border-slate-700 rounded-lg text-sm font-medium transition min-w-[200px] text-center">
+                    Chargement...
+                </button>
+
+                <button onclick="changeDate(1)" class="p-2 bg-slate-800 hover:bg-slate-700 rounded-lg text-slate-300 transition">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                </button>
+            </div>
+
+            <div class="flex bg-slate-800 p-1 rounded-lg border border-slate-700">
+                <button id="btn-day" onclick="switchView('day')" class="px-4 py-1.5 text-sm rounded-md font-medium text-slate-400 hover:text-slate-200 transition">Jour</button>
+                <button id="btn-week" onclick="switchView('week')" class="px-4 py-1.5 text-sm rounded-md font-medium bg-indigo-600 text-white shadow transition">Semaine</button>
+                <button id="btn-month" onclick="switchView('month')" class="px-4 py-1.5 text-sm rounded-md font-medium text-slate-400 hover:text-slate-200 transition">Mois</button>
+            </div>
+
+            <div>
+                <button onclick="toggleModal()" class="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg font-semibold text-sm shadow-sm transition">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                    Faire une demande de créneaux
+                </button>
+            </div>
+        </div>
+
+        <div id="calendar-view-week" class="flex-1 bg-slate-950 rounded-xl border border-slate-800 overflow-hidden flex flex-col">
+            <div class="grid grid-cols-8 border-b border-slate-800 bg-slate-900/50 text-center text-sm font-semibold text-slate-300">
+                <div class="py-3 border-r border-slate-800 text-left px-4 text-xs uppercase tracking-wider text-slate-500 flex items-center">Shifts</div>
+                <div class="py-3 border-r border-slate-800" id="header-mon">Lundi</div>
+                <div class="py-3 border-r border-slate-800" id="header-tue">Mardi</div>
+                <div class="py-3 border-r border-slate-800" id="header-wed">Mercredi</div>
+                <div class="py-3 border-r border-slate-800" id="header-thu">Jeudi</div>
+                <div class="py-3 border-r border-slate-800" id="header-fri">Vendredi</div>
+                <div class="py-3 border-r border-slate-800 text-indigo-300" id="header-sat">Samedi</div>
+                <div class="py-3 text-indigo-300" id="header-sun">Dimanche</div>
+            </div>
+
+            <div class="flex-1 grid grid-cols-8 grid-rows-2">
+                
+                <div class="row-start-1 col-start-1 border-r border-b border-slate-800 bg-slate-900/30 px-4 flex flex-col justify-center">
+                    <span class="font-medium text-sm">Shift Jour</span>
+                    <span class="text-xs text-slate-500">07h00 - 19h00</span>
+                </div>
+                <div class="row-start-1 col-start-2 border-r border-b border-slate-800 p-2 hover:bg-slate-900/40 transition"></div>
+                <div class="row-start-1 col-start-3 border-r border-b border-slate-800 p-2 hover:bg-slate-900/40 transition"></div>
+                <div class="row-start-1 col-start-4 border-r border-b border-slate-800 p-2 hover:bg-slate-900/40 transition"></div>
+                <div class="row-start-1 col-start-5 border-r border-b border-slate-800 p-2 hover:bg-slate-900/40 transition"></div>
+                <div class="row-start-1 col-start-6 border-r border-b border-slate-800 p-2 hover:bg-slate-900/40 transition"></div>
+
+                <div class="row-start-1 row-span-2 col-start-7 border-r border-slate-800 bg-indigo-900/10 hover:bg-indigo-900/20 transition">
+                    </div>
+                <div class="row-start-1 row-span-2 col-start-8 bg-indigo-900/10 hover:bg-indigo-900/20 transition">
+                    </div>
+
+                <div class="row-start-2 col-start-1 border-r border-slate-800 bg-slate-900/30 px-4 flex flex-col justify-center">
+                    <span class="font-medium text-sm">Shift Nuit</span>
+                    <span class="text-xs text-slate-500">19h00 - 07h00</span>
+                </div>
+                <div class="row-start-2 col-start-2 border-r border-slate-800 p-2 hover:bg-slate-900/40 transition"></div>
+                <div class="row-start-2 col-start-3 border-r border-slate-800 p-2 hover:bg-slate-900/40 transition"></div>
+                <div class="row-start-2 col-start-4 border-r border-slate-800 p-2 hover:bg-slate-900/40 transition"></div>
+                <div class="row-start-2 col-start-5 border-r border-slate-800 p-2 hover:bg-slate-900/40 transition"></div>
+                <div class="row-start-2 col-start-6 border-r border-slate-800 p-2 hover:bg-slate-900/40 transition"></div>
+            </div>
+        </div>
+        
+        <div id="calendar-view-month" class="hidden flex-1 bg-slate-950 rounded-xl border border-slate-800 overflow-hidden flex flex-col">
+            <div class="grid grid-cols-7 border-b border-slate-800 bg-slate-900/50 text-center text-sm font-semibold text-slate-300">
+                <div class="py-3 border-r border-slate-800">Lundi</div>
+                <div class="py-3 border-r border-slate-800">Mardi</div>
+                <div class="py-3 border-r border-slate-800">Mercredi</div>
+                <div class="py-3 border-r border-slate-800">Jeudi</div>
+                <div class="py-3 border-r border-slate-800">Vendredi</div>
+                <div class="py-3 border-r border-slate-800 text-indigo-300">Samedi</div>
+                <div class="py-3 text-indigo-300">Dimanche</div>
+            </div>
+            <div id="month-grid" class="flex-1 grid grid-cols-7 auto-rows-fr"></div>
+        </div>
+
+        <div id="calendar-view-day" class="hidden flex-1 bg-slate-950 rounded-xl border border-slate-800 p-6 flex items-center justify-center text-slate-400">
+            Vue Journalière en construction
+        </div>
+
+    </main>
+
+    <div id="pref-modal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div class="bg-slate-900 border border-slate-800 rounded-xl max-w-md w-full p-6 shadow-xl">
+            <h3 class="text-lg font-bold text-slate-100 mb-4">Soumettre mes préférences</h3>
+            <div class="flex justify-end gap-3 pt-2">
+                <button type="button" onclick="toggleModal()" class="px-4 py-2 text-sm font-medium text-slate-400 hover:text-slate-200">Fermer</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentDate = new Date();
+        let currentView = 'week';
+
+        // 1. Logique des Dates
+        function getWeekNumber(d) {
+            const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+            date.setUTCDate(date.getUTCDate() + 4 - (date.getUTCDay()||7));
+            const yearStart = new Date(Date.UTC(date.getUTCFullYear(),0,1));
+            return Math.ceil((((date - yearStart) / 86400000) + 1)/7);
+        }
+
+        function updateUI() {
+            const monthStr = currentDate.toLocaleString('fr-FR', { month: 'long' });
+            const monthCap = monthStr.charAt(0).toUpperCase() + monthStr.slice(1);
+            const year = currentDate.getFullYear();
+
+            // Titre du bouton central
+            if(currentView === 'week') {
+                document.getElementById('week-display').innerHTML = `Semaine <span class="font-bold text-indigo-400">${getWeekNumber(currentDate)}</span> &mdash; ${monthCap} ${year}`;
+                renderWeekHeaders();
+            } else if(currentView === 'month') {
+                document.getElementById('week-display').innerHTML = `<span class="font-bold text-indigo-400">${monthCap}</span> ${year}`;
+                renderMonthGrid();
+            } else {
+                const dayStr = currentDate.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
+                document.getElementById('week-display').innerHTML = dayStr.charAt(0).toUpperCase() + dayStr.slice(1);
+            }
+        }
+
+        // Calcule et affiche les dates des jours pour la vue Semaine (Format: Lundi 06)
+        function renderWeekHeaders() {
+            const curr = new Date(currentDate);
+            const day = curr.getDay(); // 0 = Dimanche
+            const diffToMonday = curr.getDate() - day + (day === 0 ? -6 : 1);
+            const monday = new Date(curr.setDate(diffToMonday));
+
+            const daysIds = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+            const dayNames = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
+
+            for(let i = 0; i < 7; i++) {
+                const d = new Date(monday);
+                d.setDate(monday.getDate() + i);
+                
+                // Formate le numéro du jour avec un zéro initial si besoin (ex: "08")
+                const dateNum = String(d.getDate()).padStart(2, '0');
+                
+                const header = document.getElementById('header-' + daysIds[i]);
+                if(header) {
+                    header.innerHTML = `${dayNames[i]} ${dateNum}`;
+                }
+            }
+        }
+
+        // Génère les cases du mois
+        function renderMonthGrid() {
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            
+            // Ajustement pour que Lundi soit la colonne 0 (au lieu du Dimanche)
+            let startDay = firstDay === 0 ? 6 : firstDay - 1; 
+            
+            const grid = document.getElementById('month-grid');
+            grid.innerHTML = ''; 
+
+            // Cases vides pour l'alignement du début du mois
+            for(let i = 0; i < startDay; i++) {
+                grid.innerHTML += `<div class="border-r border-b border-slate-800/30 p-2 bg-slate-900/20"></div>`;
+            }
+
+            // Jours réels
+            for(let i = 1; i <= daysInMonth; i++) {
+                grid.innerHTML += `
+                    <div class="border-r border-b border-slate-800 p-2 hover:bg-slate-800/50 transition flex flex-col group cursor-pointer">
+                        <span class="text-sm font-medium text-slate-400 group-hover:text-indigo-400">${i}</span>
+                    </div>`;
+            }
+        }
+
+        // Gère les clics sur les flèches (< et >)
+        function changeDate(offset) {
+            if(currentView === 'week') {
+                currentDate.setDate(currentDate.getDate() + (offset * 7));
+            } else if(currentView === 'month') {
+                currentDate.setMonth(currentDate.getMonth() + offset);
+            } else {
+                currentDate.setDate(currentDate.getDate() + offset);
+            }
+            updateUI();
+        }
+
+        // 2. Gestion des Onglets (Jour / Semaine / Mois)
+        function switchView(viewName) {
+            currentView = viewName;
+            const views = ['day', 'week', 'month'];
+            
+            views.forEach(v => {
+                const btn = document.getElementById('btn-' + v);
+                const calendarBlock = document.getElementById('calendar-view-' + v);
+                
+                if (v === viewName) {
+                    btn.className = "px-4 py-1.5 text-sm rounded-md font-medium bg-indigo-600 text-white shadow transition";
+                    calendarBlock.classList.remove('hidden');
+                    calendarBlock.classList.add('flex', 'flex-col');
+                } else {
+                    btn.className = "px-4 py-1.5 text-sm rounded-md font-medium text-slate-400 hover:text-slate-200 transition";
+                    calendarBlock.classList.add('hidden');
+                    calendarBlock.classList.remove('flex', 'flex-col');
+                }
+            });
+            updateUI();
+        }
+
+        // 3. Modale
+        function toggleModal() {
+            document.getElementById('pref-modal').classList.toggle('hidden');
+        }
+
+        // Initialisation
+        updateUI();
+    </script>
+</body>
+</html>
