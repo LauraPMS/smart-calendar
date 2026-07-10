@@ -1,5 +1,3 @@
-// Ce fichier servira a contenir la structure des données
-
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -28,4 +26,11 @@ pub struct CreateUserPayload {
 pub struct LoginPayload {
     pub email: String,
     pub password: String,
+}
+
+#[derive(Deserialize, Debug)]
+pub struct ChangePasswordPayload {
+    pub email: String,
+    pub old_password: String,
+    pub new_password: String,
 }

@@ -52,16 +52,21 @@
                 msgDiv.classList.remove('hidden');
 
                 if (response.ok) {
-                    if (resultText === "REQUIRES_PASSWORD_CHANGE") {
-                        msgDiv.className = "text-sm font-medium text-amber-500 text-center mt-4";
-                        msgDiv.innerText = "Première connexion : Redirection vers le changement de mot de passe...";
-                        // La logique de redirection vers la page de changement de mot de passe viendra ici
+                    // On lit la réponse en JSON au lieu de texte
+                    const data = await response.json(); 
+                    
+                    if (data.status === "REQUIRES_PASSWORD_CHANGE") {
+                        localStorage.setItem('temp_email', email);
+                        localStorage.setItem('temp_password', password);
+                        window.location.href = '/change-password.html';
                     } else {
-                        // Connexion réussie, redirection vers le calendrier
+                        // On sauvegarde l'identité de l'utilisateur
+                        localStorage.setItem('session_name', data.name);
+                        localStorage.setItem('session_role', data.role);
                         window.location.href = '/index.html';
                     }
                 } else {
-                    // Affichage de l'erreur (ex: Mauvais mot de passe)
+                    const resultText = await response.text();
                     msgDiv.className = "text-sm font-medium text-rose-400 text-center mt-4";
                     msgDiv.innerText = resultText;
                 }
