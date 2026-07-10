@@ -4,7 +4,9 @@ CREATE TABLE users (
     user_id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
     role TEXT NOT NULL CHECK(role IN ('Admin', 'User')),
-    email TEXT NOT NULL UNIQUE
+    email TEXT NOT NULL UNIQUE,
+    password_hash TEXT NOT NULL,
+    must_change_password INTEGER NOT NULL DEFAULT 1 
 );
 
 -- 2. Table slots (Créneaux disponibles)

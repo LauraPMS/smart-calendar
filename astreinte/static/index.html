@@ -10,42 +10,46 @@
 
     <header class="flex items-center justify-between border-b border-slate-800 bg-slate-950 px-6 py-4">
         <h1 class="text-xl font-bold tracking-tight text-indigo-400">Astreintes SSI</h1>
-        <div class="flex items-center gap-4">
-            <span class="text-sm text-slate-400">Session : <strong class="text-slate-200">Admin</strong></span>
-            <button class="rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500">Créer un compte</button>
+        <div class="flex items-center gap-6">
+            <nav class="flex space-x-1 bg-slate-900 p-1 rounded-lg border border-slate-800">
+                <button id="tab-calendar" onclick="switchTab('calendar')" class="px-4 py-1.5 text-sm rounded-md font-medium bg-indigo-600 text-white shadow transition">
+                    Vue Calendrier
+                </button>
+                <button id="tab-requests" onclick="switchTab('requests')" class="px-4 py-1.5 text-sm rounded-md font-medium text-slate-400 hover:text-slate-200 transition relative">
+                    Demandes & Conflits
+                    <span class="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-[10px] font-bold text-white">1</span>
+                </button>
+            </nav>
+            <div class="flex items-center gap-4 border-l border-slate-800 pl-6">
+                <span class="text-sm text-slate-400">Session : <strong class="text-slate-200">Admin</strong></span>
+                <a href="/login.html" class="text-sm text-rose-400 hover:text-rose-300 transition underline decoration-rose-400/30 underline-offset-4 mr-2">Déconnexion</a>
+                <button onclick="toggleCreateUserModal()" class="rounded-md bg-slate-800 border border-slate-700 px-3 py-1.5 text-sm font-semibold text-slate-200 hover:bg-slate-700 transition">Créer un compte</button>
+            </div>
         </div>
     </header>
 
-    <main class="flex-1 flex flex-col p-6 overflow-y-auto">
-        
+    <main id="main-calendar-view" class="flex-1 flex flex-col p-6 overflow-y-auto">
         <div class="flex flex-wrap items-center justify-between gap-4 mb-6 bg-slate-950 p-4 rounded-xl border border-slate-800">
-            
             <div class="flex items-center gap-3">
                 <button onclick="changeDate(-1)" class="p-2 bg-slate-800 hover:bg-slate-700 rounded-lg text-slate-300 transition">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
                 </button>
-                
-                <button id="week-display" class="px-4 py-2 bg-slate-800 hover:bg-indigo-900 border border-slate-700 rounded-lg text-sm font-medium transition min-w-[200px] text-center">
-                    Chargement...
-                </button>
-
+                <button id="week-display" class="px-4 py-2 bg-slate-800 hover:bg-indigo-900 border border-slate-700 rounded-lg text-sm font-medium transition min-w-[200px] text-center"></button>
                 <button onclick="changeDate(1)" class="p-2 bg-slate-800 hover:bg-slate-700 rounded-lg text-slate-300 transition">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                 </button>
             </div>
 
             <div class="flex bg-slate-800 p-1 rounded-lg border border-slate-700">
-                <button id="btn-day" onclick="switchView('day')" class="px-4 py-1.5 text-sm rounded-md font-medium text-slate-400 hover:text-slate-200 transition">Jour</button>
-                <button id="btn-week" onclick="switchView('week')" class="px-4 py-1.5 text-sm rounded-md font-medium bg-indigo-600 text-white shadow transition">Semaine</button>
-                <button id="btn-month" onclick="switchView('month')" class="px-4 py-1.5 text-sm rounded-md font-medium text-slate-400 hover:text-slate-200 transition">Mois</button>
+                <button id="btn-day" onclick="switchCalendarView('day')" class="px-4 py-1.5 text-sm rounded-md font-medium text-slate-400 hover:text-slate-200 transition">Jour</button>
+                <button id="btn-week" onclick="switchCalendarView('week')" class="px-4 py-1.5 text-sm rounded-md font-medium bg-indigo-600 text-white shadow transition">Semaine</button>
+                <button id="btn-month" onclick="switchCalendarView('month')" class="px-4 py-1.5 text-sm rounded-md font-medium text-slate-400 hover:text-slate-200 transition">Mois</button>
             </div>
 
-            <div>
-                <button onclick="toggleModal()" class="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg font-semibold text-sm shadow-sm transition">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                    Faire une demande de créneaux
-                </button>
-            </div>
+            <button onclick="toggleModal()" class="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg font-semibold text-sm shadow-sm transition">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                Faire une demande de créneaux
+            </button>
         </div>
 
         <div id="calendar-view-week" class="flex-1 bg-slate-950 rounded-xl border border-slate-800 overflow-hidden flex flex-col">
@@ -61,34 +65,38 @@
             </div>
 
             <div class="flex-1 grid grid-cols-8 grid-rows-2">
-                
                 <div class="row-start-1 col-start-1 border-r border-b border-slate-800 bg-slate-900/30 px-4 flex flex-col justify-center">
                     <span class="font-medium text-sm">Shift Jour</span>
                     <span class="text-xs text-slate-500">07h00 - 19h00</span>
                 </div>
-                <div class="row-start-1 col-start-2 border-r border-b border-slate-800 p-2 hover:bg-slate-900/40 transition"></div>
-                <div class="row-start-1 col-start-3 border-r border-b border-slate-800 p-2 hover:bg-slate-900/40 transition"></div>
-                <div class="row-start-1 col-start-4 border-r border-b border-slate-800 p-2 hover:bg-slate-900/40 transition"></div>
-                <div class="row-start-1 col-start-5 border-r border-b border-slate-800 p-2 hover:bg-slate-900/40 transition"></div>
-                <div class="row-start-1 col-start-6 border-r border-b border-slate-800 p-2 hover:bg-slate-900/40 transition"></div>
+                <div class="row-start-1 col-start-2 border-r border-b border-slate-800 p-2 hover:bg-slate-800/40 transition"></div>
+                
+                <div class="row-start-1 col-start-3 border-r border-b border-slate-800 bg-stripes-conflict p-2 flex flex-col justify-between items-center bg-gradient-to-br from-rose-950/40 to-amber-950/40 border-l-2 border-l-rose-500 relative group cursor-pointer" onclick="switchTab('requests')">
+                    <span class="text-[11px] font-bold tracking-wider text-rose-400 bg-rose-950 px-1.5 py-0.5 rounded border border-rose-800/60 shadow">⚠️ CONFLIT (2)</span>
+                    <span class="text-[10px] text-slate-400 group-hover:text-slate-200 transition underline">Cliquez pour résoudre</span>
+                </div>
+                
+                <div class="row-start-1 col-start-4 border-r border-b border-slate-800 p-2 hover:bg-slate-800/40 transition"></div>
+                <div class="row-start-1 col-start-5 border-r border-b border-slate-800 p-2 hover:bg-slate-800/40 transition"></div>
+                <div class="row-start-1 col-start-6 border-r border-b border-slate-800 p-2 hover:bg-slate-800/40 transition"></div>
 
-                <div class="row-start-1 row-span-2 col-start-7 border-r border-slate-800 bg-indigo-900/10 hover:bg-indigo-900/20 transition">
-                    </div>
-                <div class="row-start-1 row-span-2 col-start-8 bg-indigo-900/10 hover:bg-indigo-900/20 transition">
-                    </div>
+                <div class="row-start-1 row-span-2 col-start-7 border-r border-slate-800 bg-indigo-900/10 hover:bg-indigo-900/20 transition"></div>
+                <div class="row-start-1 row-span-2 col-start-8 bg-indigo-900/10 hover:bg-indigo-900/20 transition"></div>
 
                 <div class="row-start-2 col-start-1 border-r border-slate-800 bg-slate-900/30 px-4 flex flex-col justify-center">
                     <span class="font-medium text-sm">Shift Nuit</span>
                     <span class="text-xs text-slate-500">19h00 - 07h00</span>
                 </div>
-                <div class="row-start-2 col-start-2 border-r border-slate-800 p-2 hover:bg-slate-900/40 transition"></div>
-                <div class="row-start-2 col-start-3 border-r border-slate-800 p-2 hover:bg-slate-900/40 transition"></div>
-                <div class="row-start-2 col-start-4 border-r border-slate-800 p-2 hover:bg-slate-900/40 transition"></div>
-                <div class="row-start-2 col-start-5 border-r border-slate-800 p-2 hover:bg-slate-900/40 transition"></div>
-                <div class="row-start-2 col-start-6 border-r border-slate-800 p-2 hover:bg-slate-900/40 transition"></div>
+                <div class="row-start-2 col-start-2 border-r border-slate-800 p-2 bg-emerald-950/30 border-l-2 border-l-emerald-500 flex items-center px-3">
+                    <span class="text-xs font-semibold text-emerald-400">Collaborateur X (Assigné)</span>
+                </div>
+                <div class="row-start-2 col-start-3 border-r border-slate-800 p-2 hover:bg-slate-800/40 transition"></div>
+                <div class="row-start-2 col-start-4 border-r border-slate-800 p-2 hover:bg-slate-800/40 transition"></div>
+                <div class="row-start-2 col-start-5 border-r border-slate-800 p-2 hover:bg-slate-800/40 transition"></div>
+                <div class="row-start-2 col-start-6 border-r border-slate-800 p-2 hover:bg-slate-800/40 transition"></div>
             </div>
         </div>
-        
+
         <div id="calendar-view-month" class="hidden flex-1 bg-slate-950 rounded-xl border border-slate-800 overflow-hidden flex flex-col">
             <div class="grid grid-cols-7 border-b border-slate-800 bg-slate-900/50 text-center text-sm font-semibold text-slate-300">
                 <div class="py-3 border-r border-slate-800">Lundi</div>
@@ -101,11 +109,71 @@
             </div>
             <div id="month-grid" class="flex-1 grid grid-cols-7 auto-rows-fr"></div>
         </div>
+        <div id="calendar-view-day" class="hidden flex-1 bg-slate-950 rounded-xl border border-slate-800 p-6 flex items-center justify-center text-slate-400">Vue Journalière en construction</div>
+    </main>
 
-        <div id="calendar-view-day" class="hidden flex-1 bg-slate-950 rounded-xl border border-slate-800 p-6 flex items-center justify-center text-slate-400">
-            Vue Journalière en construction
+    <main id="main-requests-view" class="hidden flex-1 flex-col p-6 overflow-y-auto">
+        <div class="max-w-4xl mx-auto w-full space-y-6">
+            
+            <div class="border-b border-slate-800 pb-4">
+                <h2 class="text-xl font-bold tracking-tight text-slate-100">Arbitrage des créneaux</h2>
+                <p class="text-sm text-slate-400 mt-1">Validez les demandes uniques ou résolvez les conflits d'horaires suspectés (style Git-merge).</p>
+            </div>
+
+            <div class="bg-slate-950 border border-rose-900/60 rounded-xl overflow-hidden shadow-xl">
+                <div class="bg-rose-950/40 px-4 py-3 border-b border-rose-900/60 flex items-center justify-between">
+                    <div class="flex items-center gap-2 text-rose-400 font-semibold text-sm">
+                        <span>⚡ CONFLIT DE FUSION : Mercredi 08 Juillet &mdash; Shift Jour</span>
+                    </div>
+                    <span class="text-xs font-mono bg-rose-900 text-rose-200 px-2 py-0.5 rounded">HEAD: CONFLICT</span>
+                </div>
+                
+                <div class="p-4 space-y-4 bg-slate-950 font-sans">
+                    <div class="text-xs text-slate-400 uppercase font-mono tracking-wider"><<<< SOLICITATIONS ENTRANTES</div>
+                    
+                    <div class="flex items-center justify-between p-4 bg-slate-900 border border-slate-800 rounded-lg hover:border-slate-700 transition">
+                        <div>
+                            <span class="font-semibold text-slate-200 block text-sm">Collaborateur A</span>
+                            <span class="text-xs text-emerald-400 font-medium">Vœu fort (Vert - Poids 1)</span>
+                        </div>
+                        <button class="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs px-4 py-2 rounded-lg transition shadow-sm">
+                            Accepter & Résoudre
+                        </button>
+                    </div>
+
+                    <div class="text-center text-slate-600 font-mono text-xs my-1">======= BALANCE =======</div>
+
+                    <div class="flex items-center justify-between p-4 bg-slate-900 border border-slate-800 rounded-lg hover:border-slate-700 transition">
+                        <div>
+                            <span class="font-semibold text-slate-200 block text-sm">Collaborateur B</span>
+                            <span class="text-xs text-amber-400 font-medium">Disponibilité simple (Orange - Poids 2)</span>
+                        </div>
+                        <button class="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs px-4 py-2 rounded-lg transition shadow-sm">
+                            Accepter & Résoudre
+                        </button>
+                    </div>
+
+                    <div class="text-xs text-slate-400 text-right font-mono tracking-wider">>>>>>>> END OF SLOT</div>
+                </div>
+            </div>
+
+            <div class="bg-slate-950 border border-slate-800 rounded-xl p-4">
+                <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-3">Demandes uniques (Prêtes pour validation)</h3>
+                <div class="divide-y divide-slate-800">
+                    <div class="flex items-center justify-between py-3">
+                        <div>
+                            <p class="text-sm font-semibold text-slate-200">Collaborateur C</p>
+                            <p class="text-xs text-slate-400">Lundi 06 Juillet &mdash; Shift Nuit</p>
+                        </div>
+                        <div class="flex gap-2">
+                            <button class="px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs rounded transition">Approuver</button>
+                            <button class="px-3 py-1 bg-slate-800 hover:bg-rose-900/40 text-slate-400 hover:text-rose-300 border border-slate-700 text-xs rounded transition">Rejeter</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
         </div>
-
     </main>
 
     <div id="pref-modal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
@@ -117,11 +185,46 @@
         </div>
     </div>
 
+    <div id="create-user-modal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div class="bg-slate-900 border border-slate-800 rounded-xl max-w-md w-full p-6 shadow-xl">
+            <h3 class="text-lg font-bold text-slate-100 mb-4">Créer un nouveau collaborateur</h3>
+            <form class="space-y-4" onsubmit="event.preventDefault(); toggleCreateUserModal();">
+                <div><label class="block text-sm font-medium text-slate-400 mb-1">Nom complet</label><input type="text" required class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-slate-200"></div>
+                <div><label class="block text-sm font-medium text-slate-400 mb-1">Adresse Email</label><input type="email" required class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-slate-200"></div>
+                <div><label class="block text-sm font-medium text-slate-400 mb-1">Mot de passe provisoire</label><input type="password" required class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-slate-200"></div>
+                <div class="flex justify-end gap-3 pt-4 border-t border-slate-800">
+                    <button type="button" onclick="toggleCreateUserModal()" class="px-4 py-2 text-sm font-medium text-slate-400 hover:text-slate-200">Annuler</button>
+                    <button type="submit" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-lg text-sm font-semibold text-white">Créer le compte</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script>
         let currentDate = new Date();
-        let currentView = 'week';
+        let currentCalendarView = 'week';
 
-        // 1. Logique des Dates
+        // Navigation entre Onglets Principaux (Calendrier vs Demandes)
+        function switchTab(tabName) {
+            const tabCalBtn = document.getElementById('tab-calendar');
+            const tabReqBtn = document.getElementById('tab-requests');
+            const mainCalBlock = document.getElementById('main-calendar-view');
+            const mainReqBlock = document.getElementById('main-requests-view');
+
+            if(tabName === 'calendar') {
+                tabCalBtn.className = "px-4 py-1.5 text-sm rounded-md font-medium bg-indigo-600 text-white shadow transition";
+                tabReqBtn.className = "px-4 py-1.5 text-sm rounded-md font-medium text-slate-400 hover:text-slate-200 transition relative";
+                mainCalBlock.classList.remove('hidden'); mainCalBlock.classList.add('flex');
+                mainReqBlock.classList.add('hidden'); mainReqBlock.classList.remove('flex');
+            } else {
+                tabReqBtn.className = "px-4 py-1.5 text-sm rounded-md font-medium bg-indigo-600 text-white shadow transition relative";
+                tabCalBtn.className = "px-4 py-1.5 text-sm rounded-md font-medium text-slate-400 hover:text-slate-200 transition";
+                mainReqBlock.classList.remove('hidden'); mainReqBlock.classList.add('flex');
+                mainCalBlock.classList.add('hidden'); mainCalBlock.classList.remove('flex');
+                renderMonthGrid(); // S'assure que tout s'actualise
+            }
+        }
+
         function getWeekNumber(d) {
             const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
             date.setUTCDate(date.getUTCDate() + 4 - (date.getUTCDay()||7));
@@ -134,11 +237,10 @@
             const monthCap = monthStr.charAt(0).toUpperCase() + monthStr.slice(1);
             const year = currentDate.getFullYear();
 
-            // Titre du bouton central
-            if(currentView === 'week') {
+            if(currentCalendarView === 'week') {
                 document.getElementById('week-display').innerHTML = `Semaine <span class="font-bold text-indigo-400">${getWeekNumber(currentDate)}</span> &mdash; ${monthCap} ${year}`;
                 renderWeekHeaders();
-            } else if(currentView === 'month') {
+            } else if(currentCalendarView === 'month') {
                 document.getElementById('week-display').innerHTML = `<span class="font-bold text-indigo-400">${monthCap}</span> ${year}`;
                 renderMonthGrid();
             } else {
@@ -147,49 +249,34 @@
             }
         }
 
-        // Calcule et affiche les dates des jours pour la vue Semaine (Format: Lundi 06)
         function renderWeekHeaders() {
             const curr = new Date(currentDate);
-            const day = curr.getDay(); // 0 = Dimanche
+            const day = curr.getDay();
             const diffToMonday = curr.getDate() - day + (day === 0 ? -6 : 1);
             const monday = new Date(curr.setDate(diffToMonday));
-
             const daysIds = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
             const dayNames = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
 
             for(let i = 0; i < 7; i++) {
-                const d = new Date(monday);
-                d.setDate(monday.getDate() + i);
-                
-                // Formate le numéro du jour avec un zéro initial si besoin (ex: "08")
+                const d = new Date(monday); d.setDate(monday.getDate() + i);
                 const dateNum = String(d.getDate()).padStart(2, '0');
-                
                 const header = document.getElementById('header-' + daysIds[i]);
-                if(header) {
-                    header.innerHTML = `${dayNames[i]} ${dateNum}`;
-                }
+                if(header) header.innerHTML = `${dayNames[i]} ${dateNum}`;
             }
         }
 
-        // Génère les cases du mois
         function renderMonthGrid() {
-            const year = currentDate.getFullYear();
-            const month = currentDate.getMonth();
+            const year = currentDate.getFullYear(); const month = currentDate.getMonth();
             const firstDay = new Date(year, month, 1).getDay();
             const daysInMonth = new Date(year, month + 1, 0).getDate();
-            
-            // Ajustement pour que Lundi soit la colonne 0 (au lieu du Dimanche)
             let startDay = firstDay === 0 ? 6 : firstDay - 1; 
-            
             const grid = document.getElementById('month-grid');
+            if(!grid) return;
             grid.innerHTML = ''; 
 
-            // Cases vides pour l'alignement du début du mois
             for(let i = 0; i < startDay; i++) {
                 grid.innerHTML += `<div class="border-r border-b border-slate-800/30 p-2 bg-slate-900/20"></div>`;
             }
-
-            // Jours réels
             for(let i = 1; i <= daysInMonth; i++) {
                 grid.innerHTML += `
                     <div class="border-r border-b border-slate-800 p-2 hover:bg-slate-800/50 transition flex flex-col group cursor-pointer">
@@ -198,46 +285,33 @@
             }
         }
 
-        // Gère les clics sur les flèches (< et >)
         function changeDate(offset) {
-            if(currentView === 'week') {
-                currentDate.setDate(currentDate.getDate() + (offset * 7));
-            } else if(currentView === 'month') {
-                currentDate.setMonth(currentDate.getMonth() + offset);
-            } else {
-                currentDate.setDate(currentDate.getDate() + offset);
-            }
+            if(currentCalendarView === 'week') currentDate.setDate(currentDate.getDate() + (offset * 7));
+            else if(currentCalendarView === 'month') currentDate.setMonth(currentDate.getMonth() + offset);
+            else currentDate.setDate(currentDate.getDate() + offset);
             updateUI();
         }
 
-        // 2. Gestion des Onglets (Jour / Semaine / Mois)
-        function switchView(viewName) {
-            currentView = viewName;
+        function switchCalendarView(viewName) {
+            currentCalendarView = viewName;
             const views = ['day', 'week', 'month'];
-            
             views.forEach(v => {
                 const btn = document.getElementById('btn-' + v);
                 const calendarBlock = document.getElementById('calendar-view-' + v);
-                
                 if (v === viewName) {
                     btn.className = "px-4 py-1.5 text-sm rounded-md font-medium bg-indigo-600 text-white shadow transition";
-                    calendarBlock.classList.remove('hidden');
-                    calendarBlock.classList.add('flex', 'flex-col');
+                    calendarBlock.classList.remove('hidden'); calendarBlock.classList.add('flex', 'flex-col');
                 } else {
                     btn.className = "px-4 py-1.5 text-sm rounded-md font-medium text-slate-400 hover:text-slate-200 transition";
-                    calendarBlock.classList.add('hidden');
-                    calendarBlock.classList.remove('flex', 'flex-col');
+                    calendarBlock.classList.add('hidden'); calendarBlock.classList.remove('flex', 'flex-col');
                 }
             });
             updateUI();
         }
 
-        // 3. Modale
-        function toggleModal() {
-            document.getElementById('pref-modal').classList.toggle('hidden');
-        }
+        function toggleModal() { document.getElementById('pref-modal').classList.toggle('hidden'); }
+        function toggleCreateUserModal() { document.getElementById('create-user-modal').classList.toggle('hidden'); }
 
-        // Initialisation
         updateUI();
     </script>
 </body>

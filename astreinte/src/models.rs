@@ -15,3 +15,17 @@ pub struct User {
     pub role: Role,
     pub email: String,
 }
+
+#[derive(Deserialize, Debug)]
+pub struct CreateUserPayload {
+    pub name: String,
+    pub email: String,
+    pub role: String,
+    pub password_temp: String,
+}
+
+#[derive(Deserialize, Debug)]
+pub struct LoginPayload {
+    pub email: String,
+    pub password: String,
+}
