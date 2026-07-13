@@ -25,7 +25,7 @@
                 <input type="password" id="password" required class="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-2.5 text-slate-200 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition" placeholder="••••••••">
             </div>
 
-            <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-2.5 rounded-lg shadow-sm transition mt-4">
+            <button type="submit" id="btn-submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-2.5 rounded-lg shadow-sm transition mt-4 disabled:opacity-50 disabled:cursor-not-allowed">
                 Se connecter
             </button>
             
@@ -40,6 +40,11 @@
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
             const msgDiv = document.getElementById('login-msg');
+            const submitBtn = document.getElementById('btn-submit');
+            
+            // Protection anti double-clic
+            submitBtn.disabled = true;
+            submitBtn.innerText = "Connexion...";
             
             try {
                 const response = await fetch('/api/login', {
@@ -48,11 +53,9 @@
                     body: JSON.stringify({ email, password })
                 });
 
-                const resultText = await response.text();
                 msgDiv.classList.remove('hidden');
 
                 if (response.ok) {
-                    // On lit la réponse en JSON au lieu de texte
                     const data = await response.json(); 
                     
                     if (data.status === "REQUIRES_PASSWORD_CHANGE") {
@@ -60,21 +63,24 @@
                         localStorage.setItem('temp_password', password);
                         window.location.href = '/change-password.html';
                     } else {
-                        // On sauvegarde l'identité de l'utilisateur
                         localStorage.setItem('session_name', data.name);
                         localStorage.setItem('session_role', data.role);
                         window.location.href = '/index.html';
                     }
                 } else {
-                    const resultText = await response.text();
+                    const errorText = await response.text();
                     msgDiv.className = "text-sm font-medium text-rose-400 text-center mt-4";
-                    msgDiv.innerText = resultText;
+                    msgDiv.innerText = errorText;
+                    submitBtn.disabled = false;
+                    submitBtn.innerText = "Se connecter";
                 }
             } catch (error) {
                 console.error("Erreur réseau :", error);
                 msgDiv.classList.remove('hidden');
                 msgDiv.className = "text-sm font-medium text-rose-400 text-center mt-4";
                 msgDiv.innerText = "Impossible de joindre le serveur.";
+                submitBtn.disabled = false;
+                submitBtn.innerText = "Se connecter";
             }
         });
     </script>

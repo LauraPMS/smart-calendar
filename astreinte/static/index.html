@@ -5,9 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestion des Astreintes SSI</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        // REDIRECTION IMMEDIATE SI NON CONNECTÉ (avant même de charger la page)
+        const sessionName = localStorage.getItem('session_name');
+        const sessionRole = localStorage.getItem('session_role');
+        if (!sessionName || !sessionRole) { window.location.replace('/login.html'); }
+    </script>
 </head>
 <body class="h-full flex flex-col font-sans">
 
+    <!-- Navbar -->
     <header class="flex items-center justify-between border-b border-slate-800 bg-slate-950 px-6 py-4">
         <h1 class="text-xl font-bold tracking-tight text-indigo-400">Astreintes SSI</h1>
         <div class="flex items-center gap-6">
@@ -16,7 +23,7 @@
                 <button id="tab-requests" onclick="switchTab('requests')" class="px-4 py-1.5 text-sm rounded-md font-medium text-slate-400 hover:text-slate-200 transition relative">Demandes & Conflits</button>
             </nav>
             <div class="flex items-center gap-4 border-l border-slate-800 pl-6">
-                <span class="text-sm text-slate-400">Session : <strong id="session-name" class="text-slate-200">Chargement...</strong></span>
+                <span class="text-sm text-slate-400">Session : <strong id="display-session-name" class="text-slate-200">...</strong></span>
                 <a href="#" onclick="logout(); return false;" class="text-sm text-rose-400 hover:text-rose-300 transition underline decoration-rose-400/30 underline-offset-4 mr-2">Déconnexion</a>
                 <button id="btn-create-account" onclick="toggleCreateUserModal()" class="rounded-md bg-slate-800 border border-slate-700 px-3 py-1.5 text-sm font-semibold text-slate-200 hover:bg-slate-700 transition">Créer un compte</button>
             </div>
@@ -90,6 +97,7 @@
         </div>
     </main>
 
+    <!-- MODALES -->
     <div id="pref-modal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
         <div class="bg-slate-900 border border-slate-800 rounded-xl max-w-md w-full p-6 shadow-xl">
             <h3 class="text-lg font-bold text-slate-100 mb-4">Soumettre mes préférences</h3>
@@ -124,46 +132,158 @@
     </div>
 
     <script>
-        document.getElementById('login-form').addEventListener('submit', async (e) => {
+        // --- 1. APPLIQUER LA SESSION ---
+        document.getElementById('display-session-name').innerText = sessionName;
+        if (sessionRole !== 'Admin') {
+            document.getElementById('btn-create-account').classList.add('hidden');
+            document.getElementById('tab-requests').classList.add('hidden');
+        }
+
+        function logout() {
+            localStorage.clear();
+            window.location.href = '/login.html';
+        }
+
+        // --- 2. LOGIQUE UI CALENDRIER ---
+        let currentDate = new Date();
+        let currentCalendarView = 'week';
+
+        function switchTab(tabName) {
+            const tabCalBtn = document.getElementById('tab-calendar');
+            const tabReqBtn = document.getElementById('tab-requests');
+            const mainCalBlock = document.getElementById('main-calendar-view');
+            const mainReqBlock = document.getElementById('main-requests-view');
+
+            if(tabName === 'calendar') {
+                tabCalBtn.className = "px-4 py-1.5 text-sm rounded-md font-medium bg-indigo-600 text-white shadow transition";
+                tabReqBtn.className = "px-4 py-1.5 text-sm rounded-md font-medium text-slate-400 hover:text-slate-200 transition relative";
+                mainCalBlock.classList.remove('hidden'); mainCalBlock.classList.add('flex');
+                mainReqBlock.classList.add('hidden'); mainReqBlock.classList.remove('flex');
+            } else {
+                tabReqBtn.className = "px-4 py-1.5 text-sm rounded-md font-medium bg-indigo-600 text-white shadow transition relative";
+                tabCalBtn.className = "px-4 py-1.5 text-sm rounded-md font-medium text-slate-400 hover:text-slate-200 transition";
+                mainReqBlock.classList.remove('hidden'); mainReqBlock.classList.add('flex');
+                mainCalBlock.classList.add('hidden'); mainCalBlock.classList.remove('flex');
+                renderMonthGrid();
+            }
+        }
+
+        function getWeekNumber(d) {
+            const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+            date.setUTCDate(date.getUTCDate() + 4 - (date.getUTCDay()||7));
+            const yearStart = new Date(Date.UTC(date.getUTCFullYear(),0,1));
+            return Math.ceil((((date - yearStart) / 86400000) + 1)/7);
+        }
+
+        function updateUI() {
+            const monthStr = currentDate.toLocaleString('fr-FR', { month: 'long' });
+            const monthCap = monthStr.charAt(0).toUpperCase() + monthStr.slice(1);
+            const year = currentDate.getFullYear();
+
+            if(currentCalendarView === 'week') {
+                document.getElementById('week-display').innerHTML = `Semaine <span class="font-bold text-indigo-400">${getWeekNumber(currentDate)}</span> &mdash; ${monthCap} ${year}`;
+                renderWeekHeaders();
+            } else if(currentCalendarView === 'month') {
+                document.getElementById('week-display').innerHTML = `<span class="font-bold text-indigo-400">${monthCap}</span> ${year}`;
+                renderMonthGrid();
+            } else {
+                const dayStr = currentDate.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
+                document.getElementById('week-display').innerHTML = dayStr.charAt(0).toUpperCase() + dayStr.slice(1);
+            }
+        }
+
+        function renderWeekHeaders() {
+            const curr = new Date(currentDate);
+            const day = curr.getDay();
+            const diffToMonday = curr.getDate() - day + (day === 0 ? -6 : 1);
+            const monday = new Date(curr.setDate(diffToMonday));
+            const daysIds = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+            const dayNames = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
+
+            for(let i = 0; i < 7; i++) {
+                const d = new Date(monday); d.setDate(monday.getDate() + i);
+                const header = document.getElementById('header-' + daysIds[i]);
+                if(header) header.innerHTML = `${dayNames[i]} ${String(d.getDate()).padStart(2, '0')}`;
+            }
+        }
+
+        function renderMonthGrid() {
+            const year = currentDate.getFullYear(); const month = currentDate.getMonth();
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            let startDay = firstDay === 0 ? 6 : firstDay - 1; 
+            const grid = document.getElementById('month-grid');
+            if(!grid) return;
+            grid.innerHTML = ''; 
+            for(let i = 0; i < startDay; i++) { grid.innerHTML += `<div class="border-r border-b border-slate-800/30 p-2 bg-slate-900/20"></div>`; }
+            for(let i = 1; i <= daysInMonth; i++) { grid.innerHTML += `<div class="border-r border-b border-slate-800 p-2 hover:bg-slate-800/50 transition flex flex-col group cursor-pointer"><span class="text-sm font-medium text-slate-400 group-hover:text-indigo-400">${i}</span></div>`; }
+        }
+
+        function changeDate(offset) {
+            if(currentCalendarView === 'week') currentDate.setDate(currentDate.getDate() + (offset * 7));
+            else if(currentCalendarView === 'month') currentDate.setMonth(currentDate.getMonth() + offset);
+            else currentDate.setDate(currentDate.getDate() + offset);
+            updateUI();
+        }
+
+        function switchCalendarView(viewName) {
+            currentCalendarView = viewName;
+            const views = ['day', 'week', 'month'];
+            views.forEach(v => {
+                const btn = document.getElementById('btn-' + v);
+                const calendarBlock = document.getElementById('calendar-view-' + v);
+                if (v === viewName) {
+                    btn.className = "px-4 py-1.5 text-sm rounded-md font-medium bg-indigo-600 text-white shadow transition";
+                    calendarBlock.classList.remove('hidden'); calendarBlock.classList.add('flex', 'flex-col');
+                } else {
+                    btn.className = "px-4 py-1.5 text-sm rounded-md font-medium text-slate-400 hover:text-slate-200 transition";
+                    calendarBlock.classList.add('hidden'); calendarBlock.classList.remove('flex', 'flex-col');
+                }
+            });
+            updateUI();
+        }
+
+        function toggleModal() { document.getElementById('pref-modal').classList.toggle('hidden'); }
+        function toggleCreateUserModal() { document.getElementById('create-user-modal').classList.toggle('hidden'); }
+
+        updateUI();
+
+        // --- 3. REQUETE BACKEND : CREATION UTILISATEUR ---
+        document.getElementById('form-create-user').addEventListener('submit', async (e) => {
             e.preventDefault();
             
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            const msgDiv = document.getElementById('login-msg');
-            
+            const payload = {
+                name: document.getElementById('new-name').value,
+                email: document.getElementById('new-email').value,
+                role: document.getElementById('new-role').value,
+                password_temp: document.getElementById('new-password').value
+            };
+
             try {
-                const response = await fetch('/api/login', {
+                const response = await fetch('/api/users', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, password })
+                    body: JSON.stringify(payload)
                 });
 
+                const msgDiv = document.getElementById('create-user-msg');
                 msgDiv.classList.remove('hidden');
 
                 if (response.ok) {
-                    // On lit le flux UNE SEULE FOIS en JSON
-                    const data = await response.json(); 
-                    
-                    if (data.status === "REQUIRES_PASSWORD_CHANGE") {
-                        localStorage.setItem('temp_email', email);
-                        localStorage.setItem('temp_password', password);
-                        window.location.href = '/change-password.html';
-                    } else {
-                        localStorage.setItem('session_name', data.name);
-                        localStorage.setItem('session_role', data.role);
-                        window.location.href = '/index.html';
-                    }
+                    msgDiv.className = "text-sm font-medium text-emerald-400 mt-2";
+                    msgDiv.innerText = "Utilisateur créé avec succès !";
+                    setTimeout(() => {
+                        toggleCreateUserModal();
+                        document.getElementById('form-create-user').reset();
+                        msgDiv.classList.add('hidden');
+                    }, 1500);
                 } else {
-                    // S'il y a une erreur (ex: 401 Unauthorized), on lit le flux en texte
                     const errorText = await response.text();
-                    msgDiv.className = "text-sm font-medium text-rose-400 text-center mt-4";
+                    msgDiv.className = "text-sm font-medium text-rose-400 mt-2";
                     msgDiv.innerText = errorText;
                 }
             } catch (error) {
                 console.error("Erreur réseau :", error);
-                msgDiv.classList.remove('hidden');
-                msgDiv.className = "text-sm font-medium text-rose-400 text-center mt-4";
-                msgDiv.innerText = "Impossible de joindre le serveur.";
             }
         });
     </script>
