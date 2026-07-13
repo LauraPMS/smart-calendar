@@ -92,7 +92,7 @@
                 <h2 class="text-xl font-bold tracking-tight text-slate-100">Arbitrage des créneaux</h2>
                 <p class="text-sm text-slate-400 mt-1">Validez les demandes ou résolvez les conflits d'horaires.</p>
             </div>
-            <div class="bg-slate-950 border border-slate-800 rounded-xl p-4 flex items-center justify-center text-slate-400">
+            <div id="requests-container" class="bg-slate-950 border border-slate-800 rounded-xl p-4 flex items-center justify-center text-slate-400">
                 Aucune demande en attente.
             </div>
         </div>
@@ -183,7 +183,80 @@
         // --- 2. LOGIQUE TEMPORELLE DU CALENDRIER ---
         let currentDate = new Date();
         let currentCalendarView = 'week';
+        // Fonction pour récupérer et afficher les requêtes en base
+        async function loadRequests() {
+            if (localStorage.getItem('session_role') !== 'Admin') return;
+            const container = document.getElementById('requests-container');
+            if (!container) return;
 
+            try {
+                const response = await fetch('/api/requests');
+                if (response.ok) {
+                    const requests = await response.json();
+                    if (requests.length === 0) {
+                        container.innerHTML = "Aucune demande en attente.";
+                        container.className = "bg-slate-950 border border-slate-800 rounded-xl p-4 flex items-center justify-center text-slate-400";
+                        return;
+                    }
+
+                    container.className = "space-y-3";
+                    container.innerHTML = requests.map(req => `
+                        <div class="bg-slate-950 border border-slate-800 p-4 rounded-xl flex items-center justify-between shadow-sm transition hover:border-slate-700">
+                            <div>
+                                <div class="text-sm font-semibold text-slate-200">${req.user_email}</div>
+                                <div class="text-xs text-slate-400 mt-1">Date : <span class="text-indigo-400 font-medium">${req.date}</span> | Shift : <span class="text-indigo-400 font-medium">${req.shift_type}</span></div>
+                            </div>
+                            <div class="flex items-center gap-4">
+                                <span class="px-2.5 py-1 text-xs font-semibold rounded-full ${
+                                    req.preference === 1 ? 'text-emerald-400 bg-emerald-500/10 border border-emerald-500/20' : 
+                                    req.preference === 2 ? 'text-amber-400 bg-amber-500/10 border border-amber-500/20' : 
+                                    'text-rose-400 bg-rose-500/10 border border-rose-500/20'
+                                }">Pref : ${req.preference}</span>
+                                
+                                <span class="text-xs font-medium px-2.5 py-1 rounded-md border ${
+                                    req.status === 'Validée' ? 'text-emerald-400 bg-emerald-400/10 border-emerald-400/20' :
+                                    req.status === 'Refusée' ? 'text-rose-400 bg-rose-400/10 border-rose-400/20' :
+                                    'text-amber-500 bg-amber-500/10 border-amber-500/20'
+                                }">${req.status}</span>
+
+                                ${req.status === 'En attente' ? `
+                                <div class="flex gap-2 ml-2 border-l border-slate-800 pl-4">
+                                    <button onclick="updateStatus(${req.request_id}, 'Validée')" class="p-1.5 text-emerald-500 hover:bg-emerald-500/20 rounded-lg transition" title="Valider">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                    </button>
+                                    <button onclick="updateStatus(${req.request_id}, 'Refusée')" class="p-1.5 text-rose-500 hover:bg-rose-500/20 rounded-lg transition" title="Refuser">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                    </button>
+                                </div>
+                                ` : ''}
+                            </div>
+                        </div>
+                    `).join('');
+                }
+            } catch (err) {
+                console.error("Erreur lors de la récupération :", err);
+            }
+        }
+
+        async function updateStatus(requestId, newStatus) {
+            try {
+                const response = await fetch('/api/requests/update', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ request_id: requestId, new_status: newStatus })
+                });
+
+                if (response.ok) {
+                    loadRequests(); // Recharge la liste instantanément pour voir le changement !
+                } else {
+                    alert("Erreur lors de la mise à jour");
+                }
+            } catch (error) {
+                console.error("Erreur réseau :", error);
+            }
+        }
+
+        // Modifie ta fonction switchTab existante pour inclure le chargement :
         function switchTab(tabName) {
             const tabCalBtn = document.getElementById('tab-calendar');
             const tabReqBtn = document.getElementById('tab-requests');
@@ -200,6 +273,7 @@
                 tabCalBtn.className = "px-4 py-1.5 text-sm rounded-md font-medium text-slate-400 hover:text-slate-200 transition";
                 mainReqBlock.classList.remove('hidden'); mainReqBlock.classList.add('flex');
                 mainCalBlock.classList.add('hidden'); mainCalBlock.classList.remove('flex');
+                loadRequests(); // <-- CHARGEMENT DES REQUÊTES ICI
             }
         }
 
@@ -348,48 +422,42 @@
         // Lancement initial
         updateUI();
 
-        // --- 4. TRAITEMENTS SOUUMISSIONS FORMULAIRES ---
+        // --- 4. TRAITEMENTS SOUMISSIONS FORMULAIRES ---
         document.getElementById('form-request').addEventListener('submit', async (e) => {
             e.preventDefault();
+            
             const payload = {
+                user_email: localStorage.getItem('session_email') || "inconnu@ssi.fr",
                 date: document.getElementById('req-date').value,
                 shift_type: document.getElementById('req-type').value,
                 preference: parseInt(document.getElementById('req-pref').value)
             };
-            console.log("Payload demande créneau :", payload);
+            
             const msgDiv = document.getElementById('req-msg');
-            msgDiv.className = "text-sm font-medium text-emerald-400 mt-2";
-            msgDiv.innerText = "Demande prête (En attente du backend Rust) !";
             msgDiv.classList.remove('hidden');
-            setTimeout(() => { toggleModal(); }, 1000);
-        });
+            msgDiv.className = "text-sm font-medium text-slate-400 mt-2";
+            msgDiv.innerText = "Transmission en cours...";
 
-        document.getElementById('form-create-user').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const payload = {
-                name: document.getElementById('new-name').value,
-                email: document.getElementById('new-email').value,
-                role: document.getElementById('new-role').value,
-                password_temp: document.getElementById('new-password').value
-            };
             try {
-                const response = await fetch('/api/users', {
+                const response = await fetch('/api/requests', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
-                const msgDiv = document.getElementById('create-user-msg');
-                msgDiv.classList.remove('hidden');
+
                 if (response.ok) {
                     msgDiv.className = "text-sm font-medium text-emerald-400 mt-2";
-                    msgDiv.innerText = "Utilisateur créé avec succès !";
-                    setTimeout(() => { toggleCreateUserModal(); }, 1500);
+                    msgDiv.innerText = "Demande soumise avec succès !";
+                    setTimeout(() => { toggleModal(); }, 1000);
                 } else {
-                    const errorText = await response.text();
+                    const txt = await response.text();
                     msgDiv.className = "text-sm font-medium text-rose-400 mt-2";
-                    msgDiv.innerText = errorText;
+                    msgDiv.innerText = "Erreur : " + txt;
                 }
-            } catch (error) { console.error("Erreur réseau :", error); }
+            } catch (err) {
+                msgDiv.className = "text-sm font-medium text-rose-400 mt-2";
+                msgDiv.innerText = "Erreur de communication avec le serveur.";
+            }
         });
     </script>
 </body>

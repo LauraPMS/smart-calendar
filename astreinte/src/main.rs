@@ -18,10 +18,12 @@ async fn main() {
     let pool = db::init_pool(&db_url).await.expect("Échec de la connexion à la base de données");
     println!("✅ Connecté à SQLite !");
 
-    let app = Router::new()
+let app = Router::new()
         .route("/api/users", post(routes::create_user))
         .route("/api/login", post(routes::login_user))
         .route("/api/change-password", post(routes::change_password))
+        .route("/api/requests", post(routes::create_request).get(routes::get_requests))
+        .route("/api/requests/update", post(routes::update_request_status)) // <-- AJOUT ICI
         .fallback_service(ServeDir::new("static"))
         .with_state(pool);
 
