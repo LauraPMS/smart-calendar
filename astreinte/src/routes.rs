@@ -14,9 +14,19 @@ pub async fn create_user(
     Json(payload): Json<CreateUserPayload>,
 ) -> impl IntoResponse {
     
+    // 1. VÉRIFICATION : L'email existe-t-il déjà ?
+    let existing_user = sqlx::query!("SELECT user_id FROM users WHERE email = ?", payload.email)
+        .fetch_optional(&pool)
+        .await;
+
+    if let Ok(Some(_)) = existing_user {
+        return (StatusCode::CONFLICT, "Cet email est déjà enregistré.".to_string()).into_response();
+    }
+
+    // 2. Création classique
     let hashed_password = match hash(&payload.password_temp, DEFAULT_COST) {
         Ok(h) => h,
-        Err(_) => return (StatusCode::INTERNAL_SERVER_ERROR, "Erreur de chiffrement du mot de passe".to_string()),
+        Err(_) => return (StatusCode::INTERNAL_SERVER_ERROR, "Erreur de chiffrement du mot de passe".to_string()).into_response(),
     };
 
     let insert_result = sqlx::query!(
@@ -33,8 +43,8 @@ pub async fn create_user(
     .await;
 
     match insert_result {
-        Ok(_) => (StatusCode::CREATED, "Utilisateur créé avec succès".to_string()),
-        Err(e) => (StatusCode::BAD_REQUEST, format!("Erreur lors de la création : {}", e))
+        Ok(_) => (StatusCode::CREATED, "Utilisateur créé avec succès".to_string()).into_response(),
+        Err(e) => (StatusCode::BAD_REQUEST, format!("Erreur lors de la création : {}", e)).into_response()
     }
 }
 
@@ -82,8 +92,9 @@ pub async fn change_password(
     Json(payload): Json<ChangePasswordPayload>,
 ) -> impl IntoResponse {
     
+    // On récupère le hash, mais aussi le nom et le rôle pour la connexion auto
     let user = sqlx::query!(
-        "SELECT password_hash FROM users WHERE email = ?",
+        "SELECT name, role, password_hash FROM users WHERE email = ?",
         payload.email
     )
     .fetch_optional(&pool)
@@ -92,12 +103,12 @@ pub async fn change_password(
     match user {
         Ok(Some(record)) => {
             if !verify(&payload.old_password, &record.password_hash).unwrap_or(false) {
-                return (StatusCode::UNAUTHORIZED, "Ancien mot de passe incorrect".to_string());
+                return (StatusCode::UNAUTHORIZED, "Ancien mot de passe incorrect".to_string()).into_response();
             }
 
             let new_hashed = match hash(&payload.new_password, DEFAULT_COST) {
                 Ok(h) => h,
-                Err(_) => return (StatusCode::INTERNAL_SERVER_ERROR, "Erreur de chiffrement".to_string()),
+                Err(_) => return (StatusCode::INTERNAL_SERVER_ERROR, "Erreur de chiffrement".to_string()).into_response(),
             };
 
             let update_result = sqlx::query!(
@@ -109,11 +120,18 @@ pub async fn change_password(
             .await;
 
             match update_result {
-                Ok(_) => (StatusCode::OK, "Mot de passe mis à jour avec succès".to_string()),
-                Err(_) => (StatusCode::INTERNAL_SERVER_ERROR, "Erreur lors de la mise à jour".to_string()),
+                Ok(_) => {
+                    // CONNEXION AUTOMATIQUE : On renvoie les données JSON
+                    let json_response = serde_json::json!({
+                        "name": record.name,
+                        "role": record.role
+                    });
+                    (StatusCode::OK, Json(json_response)).into_response()
+                },
+                Err(_) => (StatusCode::INTERNAL_SERVER_ERROR, "Erreur lors de la mise à jour".to_string()).into_response(),
             }
         },
-        Ok(None) => (StatusCode::NOT_FOUND, "Utilisateur introuvable".to_string()),
-        Err(_) => (StatusCode::INTERNAL_SERVER_ERROR, "Erreur de base de données".to_string()),
+        Ok(None) => (StatusCode::NOT_FOUND, "Utilisateur introuvable".to_string()).into_response(),
+        Err(_) => (StatusCode::INTERNAL_SERVER_ERROR, "Erreur de base de données".to_string()).into_response(),
     }
 }
