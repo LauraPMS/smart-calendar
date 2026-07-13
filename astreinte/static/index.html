@@ -5,25 +5,27 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestion des Astreintes SSI</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        // REDIRECTION IMMEDIATE SI NON CONNECTÉ (avant même de charger la page)
+        const sessionName = localStorage.getItem('session_name');
+        const sessionRole = localStorage.getItem('session_role');
+        if (!sessionName || !sessionRole) { window.location.replace('/login.html'); }
+    </script>
 </head>
 <body class="h-full flex flex-col font-sans">
 
+    <!-- Navbar -->
     <header class="flex items-center justify-between border-b border-slate-800 bg-slate-950 px-6 py-4">
         <h1 class="text-xl font-bold tracking-tight text-indigo-400">Astreintes SSI</h1>
         <div class="flex items-center gap-6">
             <nav class="flex space-x-1 bg-slate-900 p-1 rounded-lg border border-slate-800">
-                <button id="tab-calendar" onclick="switchTab('calendar')" class="px-4 py-1.5 text-sm rounded-md font-medium bg-indigo-600 text-white shadow transition">
-                    Vue Calendrier
-                </button>
-                <button id="tab-requests" onclick="switchTab('requests')" class="px-4 py-1.5 text-sm rounded-md font-medium text-slate-400 hover:text-slate-200 transition relative">
-                    Demandes & Conflits
-                    <span class="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-[10px] font-bold text-white">1</span>
-                </button>
+                <button id="tab-calendar" onclick="switchTab('calendar')" class="px-4 py-1.5 text-sm rounded-md font-medium bg-indigo-600 text-white shadow transition">Vue Calendrier</button>
+                <button id="tab-requests" onclick="switchTab('requests')" class="px-4 py-1.5 text-sm rounded-md font-medium text-slate-400 hover:text-slate-200 transition relative">Demandes & Conflits</button>
             </nav>
             <div class="flex items-center gap-4 border-l border-slate-800 pl-6">
-                <span class="text-sm text-slate-400">Session : <strong class="text-slate-200">Admin</strong></span>
-                <a href="/login.html" class="text-sm text-rose-400 hover:text-rose-300 transition underline decoration-rose-400/30 underline-offset-4 mr-2">Déconnexion</a>
-                <button onclick="toggleCreateUserModal()" class="rounded-md bg-slate-800 border border-slate-700 px-3 py-1.5 text-sm font-semibold text-slate-200 hover:bg-slate-700 transition">Créer un compte</button>
+                <span class="text-sm text-slate-400">Session : <strong id="display-session-name" class="text-slate-200">...</strong></span>
+                <a href="#" onclick="logout(); return false;" class="text-sm text-rose-400 hover:text-rose-300 transition underline decoration-rose-400/30 underline-offset-4 mr-2">Déconnexion</a>
+                <button id="btn-create-account" onclick="toggleCreateUserModal()" class="rounded-md bg-slate-800 border border-slate-700 px-3 py-1.5 text-sm font-semibold text-slate-200 hover:bg-slate-700 transition">Créer un compte</button>
             </div>
         </div>
     </header>
@@ -31,24 +33,17 @@
     <main id="main-calendar-view" class="flex-1 flex flex-col p-6 overflow-y-auto">
         <div class="flex flex-wrap items-center justify-between gap-4 mb-6 bg-slate-950 p-4 rounded-xl border border-slate-800">
             <div class="flex items-center gap-3">
-                <button onclick="changeDate(-1)" class="p-2 bg-slate-800 hover:bg-slate-700 rounded-lg text-slate-300 transition">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-                </button>
+                <button onclick="changeDate(-1)" class="p-2 bg-slate-800 hover:bg-slate-700 rounded-lg text-slate-300 transition"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg></button>
                 <button id="week-display" class="px-4 py-2 bg-slate-800 hover:bg-indigo-900 border border-slate-700 rounded-lg text-sm font-medium transition min-w-[200px] text-center"></button>
-                <button onclick="changeDate(1)" class="p-2 bg-slate-800 hover:bg-slate-700 rounded-lg text-slate-300 transition">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                </button>
+                <button onclick="changeDate(1)" class="p-2 bg-slate-800 hover:bg-slate-700 rounded-lg text-slate-300 transition"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg></button>
             </div>
-
             <div class="flex bg-slate-800 p-1 rounded-lg border border-slate-700">
                 <button id="btn-day" onclick="switchCalendarView('day')" class="px-4 py-1.5 text-sm rounded-md font-medium text-slate-400 hover:text-slate-200 transition">Jour</button>
                 <button id="btn-week" onclick="switchCalendarView('week')" class="px-4 py-1.5 text-sm rounded-md font-medium bg-indigo-600 text-white shadow transition">Semaine</button>
                 <button id="btn-month" onclick="switchCalendarView('month')" class="px-4 py-1.5 text-sm rounded-md font-medium text-slate-400 hover:text-slate-200 transition">Mois</button>
             </div>
-
             <button onclick="toggleModal()" class="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg font-semibold text-sm shadow-sm transition">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                Faire une demande de créneaux
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg> Faire une demande
             </button>
         </div>
 
@@ -63,49 +58,27 @@
                 <div class="py-3 border-r border-slate-800 text-indigo-300" id="header-sat">Samedi</div>
                 <div class="py-3 text-indigo-300" id="header-sun">Dimanche</div>
             </div>
-
             <div class="flex-1 grid grid-cols-8 grid-rows-2">
-                <div class="row-start-1 col-start-1 border-r border-b border-slate-800 bg-slate-900/30 px-4 flex flex-col justify-center">
-                    <span class="font-medium text-sm">Shift Jour</span>
-                    <span class="text-xs text-slate-500">07h00 - 19h00</span>
-                </div>
-                <div class="row-start-1 col-start-2 border-r border-b border-slate-800 p-2 hover:bg-slate-800/40 transition"></div>
-                
-                <div class="row-start-1 col-start-3 border-r border-b border-slate-800 bg-stripes-conflict p-2 flex flex-col justify-between items-center bg-gradient-to-br from-rose-950/40 to-amber-950/40 border-l-2 border-l-rose-500 relative group cursor-pointer" onclick="switchTab('requests')">
-                    <span class="text-[11px] font-bold tracking-wider text-rose-400 bg-rose-950 px-1.5 py-0.5 rounded border border-rose-800/60 shadow">⚠️ CONFLIT (2)</span>
-                    <span class="text-[10px] text-slate-400 group-hover:text-slate-200 transition underline">Cliquez pour résoudre</span>
-                </div>
-                
-                <div class="row-start-1 col-start-4 border-r border-b border-slate-800 p-2 hover:bg-slate-800/40 transition"></div>
-                <div class="row-start-1 col-start-5 border-r border-b border-slate-800 p-2 hover:bg-slate-800/40 transition"></div>
-                <div class="row-start-1 col-start-6 border-r border-b border-slate-800 p-2 hover:bg-slate-800/40 transition"></div>
-
-                <div class="row-start-1 row-span-2 col-start-7 border-r border-slate-800 bg-indigo-900/10 hover:bg-indigo-900/20 transition"></div>
-                <div class="row-start-1 row-span-2 col-start-8 bg-indigo-900/10 hover:bg-indigo-900/20 transition"></div>
-
-                <div class="row-start-2 col-start-1 border-r border-slate-800 bg-slate-900/30 px-4 flex flex-col justify-center">
-                    <span class="font-medium text-sm">Shift Nuit</span>
-                    <span class="text-xs text-slate-500">19h00 - 07h00</span>
-                </div>
-                <div class="row-start-2 col-start-2 border-r border-slate-800 p-2 bg-emerald-950/30 border-l-2 border-l-emerald-500 flex items-center px-3">
-                    <span class="text-xs font-semibold text-emerald-400">Collaborateur X (Assigné)</span>
-                </div>
-                <div class="row-start-2 col-start-3 border-r border-slate-800 p-2 hover:bg-slate-800/40 transition"></div>
-                <div class="row-start-2 col-start-4 border-r border-slate-800 p-2 hover:bg-slate-800/40 transition"></div>
-                <div class="row-start-2 col-start-5 border-r border-slate-800 p-2 hover:bg-slate-800/40 transition"></div>
-                <div class="row-start-2 col-start-6 border-r border-slate-800 p-2 hover:bg-slate-800/40 transition"></div>
+                <div class="row-start-1 col-start-1 border-r border-b border-slate-800 bg-slate-900/30 px-4 flex flex-col justify-center"><span class="font-medium text-sm">Shift Jour</span><span class="text-xs text-slate-500">07h00 - 19h00</span></div>
+                <div class="row-start-1 col-start-2 border-r border-b border-slate-800 p-2 hover:bg-slate-800/40"></div>
+                <div class="row-start-1 col-start-3 border-r border-b border-slate-800 p-2 hover:bg-slate-800/40"></div>
+                <div class="row-start-1 col-start-4 border-r border-b border-slate-800 p-2 hover:bg-slate-800/40"></div>
+                <div class="row-start-1 col-start-5 border-r border-b border-slate-800 p-2 hover:bg-slate-800/40"></div>
+                <div class="row-start-1 col-start-6 border-r border-b border-slate-800 p-2 hover:bg-slate-800/40"></div>
+                <div class="row-start-1 row-span-2 col-start-7 border-r border-slate-800 bg-indigo-900/10 hover:bg-indigo-900/20"></div>
+                <div class="row-start-1 row-span-2 col-start-8 bg-indigo-900/10 hover:bg-indigo-900/20"></div>
+                <div class="row-start-2 col-start-1 border-r border-slate-800 bg-slate-900/30 px-4 flex flex-col justify-center"><span class="font-medium text-sm">Shift Nuit</span><span class="text-xs text-slate-500">19h00 - 07h00</span></div>
+                <div class="row-start-2 col-start-2 border-r border-slate-800 p-2 hover:bg-slate-800/40"></div>
+                <div class="row-start-2 col-start-3 border-r border-slate-800 p-2 hover:bg-slate-800/40"></div>
+                <div class="row-start-2 col-start-4 border-r border-slate-800 p-2 hover:bg-slate-800/40"></div>
+                <div class="row-start-2 col-start-5 border-r border-slate-800 p-2 hover:bg-slate-800/40"></div>
+                <div class="row-start-2 col-start-6 border-r border-slate-800 p-2 hover:bg-slate-800/40"></div>
             </div>
         </div>
 
         <div id="calendar-view-month" class="hidden flex-1 bg-slate-950 rounded-xl border border-slate-800 overflow-hidden flex flex-col">
             <div class="grid grid-cols-7 border-b border-slate-800 bg-slate-900/50 text-center text-sm font-semibold text-slate-300">
-                <div class="py-3 border-r border-slate-800">Lundi</div>
-                <div class="py-3 border-r border-slate-800">Mardi</div>
-                <div class="py-3 border-r border-slate-800">Mercredi</div>
-                <div class="py-3 border-r border-slate-800">Jeudi</div>
-                <div class="py-3 border-r border-slate-800">Vendredi</div>
-                <div class="py-3 border-r border-slate-800 text-indigo-300">Samedi</div>
-                <div class="py-3 text-indigo-300">Dimanche</div>
+                <div class="py-3 border-r border-slate-800">Lundi</div><div class="py-3 border-r border-slate-800">Mardi</div><div class="py-3 border-r border-slate-800">Mercredi</div><div class="py-3 border-r border-slate-800">Jeudi</div><div class="py-3 border-r border-slate-800">Vendredi</div><div class="py-3 border-r border-slate-800 text-indigo-300">Samedi</div><div class="py-3 text-indigo-300">Dimanche</div>
             </div>
             <div id="month-grid" class="flex-1 grid grid-cols-7 auto-rows-fr"></div>
         </div>
@@ -114,68 +87,17 @@
 
     <main id="main-requests-view" class="hidden flex-1 flex-col p-6 overflow-y-auto">
         <div class="max-w-4xl mx-auto w-full space-y-6">
-            
             <div class="border-b border-slate-800 pb-4">
                 <h2 class="text-xl font-bold tracking-tight text-slate-100">Arbitrage des créneaux</h2>
-                <p class="text-sm text-slate-400 mt-1">Validez les demandes uniques ou résolvez les conflits d'horaires suspectés (style Git-merge).</p>
+                <p class="text-sm text-slate-400 mt-1">Validez les demandes ou résolvez les conflits d'horaires.</p>
             </div>
-
-            <div class="bg-slate-950 border border-rose-900/60 rounded-xl overflow-hidden shadow-xl">
-                <div class="bg-rose-950/40 px-4 py-3 border-b border-rose-900/60 flex items-center justify-between">
-                    <div class="flex items-center gap-2 text-rose-400 font-semibold text-sm">
-                        <span>⚡ CONFLIT DE FUSION : Mercredi 08 Juillet &mdash; Shift Jour</span>
-                    </div>
-                    <span class="text-xs font-mono bg-rose-900 text-rose-200 px-2 py-0.5 rounded">HEAD: CONFLICT</span>
-                </div>
-                
-                <div class="p-4 space-y-4 bg-slate-950 font-sans">
-                    <div class="text-xs text-slate-400 uppercase font-mono tracking-wider"><<<< SOLICITATIONS ENTRANTES</div>
-                    
-                    <div class="flex items-center justify-between p-4 bg-slate-900 border border-slate-800 rounded-lg hover:border-slate-700 transition">
-                        <div>
-                            <span class="font-semibold text-slate-200 block text-sm">Collaborateur A</span>
-                            <span class="text-xs text-emerald-400 font-medium">Vœu fort (Vert - Poids 1)</span>
-                        </div>
-                        <button class="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs px-4 py-2 rounded-lg transition shadow-sm">
-                            Accepter & Résoudre
-                        </button>
-                    </div>
-
-                    <div class="text-center text-slate-600 font-mono text-xs my-1">======= BALANCE =======</div>
-
-                    <div class="flex items-center justify-between p-4 bg-slate-900 border border-slate-800 rounded-lg hover:border-slate-700 transition">
-                        <div>
-                            <span class="font-semibold text-slate-200 block text-sm">Collaborateur B</span>
-                            <span class="text-xs text-amber-400 font-medium">Disponibilité simple (Orange - Poids 2)</span>
-                        </div>
-                        <button class="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs px-4 py-2 rounded-lg transition shadow-sm">
-                            Accepter & Résoudre
-                        </button>
-                    </div>
-
-                    <div class="text-xs text-slate-400 text-right font-mono tracking-wider">>>>>>>> END OF SLOT</div>
-                </div>
+            <div class="bg-slate-950 border border-slate-800 rounded-xl p-4 flex items-center justify-center text-slate-400">
+                Aucune demande en attente.
             </div>
-
-            <div class="bg-slate-950 border border-slate-800 rounded-xl p-4">
-                <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-3">Demandes uniques (Prêtes pour validation)</h3>
-                <div class="divide-y divide-slate-800">
-                    <div class="flex items-center justify-between py-3">
-                        <div>
-                            <p class="text-sm font-semibold text-slate-200">Collaborateur C</p>
-                            <p class="text-xs text-slate-400">Lundi 06 Juillet &mdash; Shift Nuit</p>
-                        </div>
-                        <div class="flex gap-2">
-                            <button class="px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs rounded transition">Approuver</button>
-                            <button class="px-3 py-1 bg-slate-800 hover:bg-rose-900/40 text-slate-400 hover:text-rose-300 border border-slate-700 text-xs rounded transition">Rejeter</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
         </div>
     </main>
 
+    <!-- MODALES -->
     <div id="pref-modal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
         <div class="bg-slate-900 border border-slate-800 rounded-xl max-w-md w-full p-6 shadow-xl">
             <h3 class="text-lg font-bold text-slate-100 mb-4">Soumettre mes préférences</h3>
@@ -188,10 +110,19 @@
     <div id="create-user-modal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
         <div class="bg-slate-900 border border-slate-800 rounded-xl max-w-md w-full p-6 shadow-xl">
             <h3 class="text-lg font-bold text-slate-100 mb-4">Créer un nouveau collaborateur</h3>
-            <form class="space-y-4" onsubmit="event.preventDefault(); toggleCreateUserModal();">
-                <div><label class="block text-sm font-medium text-slate-400 mb-1">Nom complet</label><input type="text" required class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-slate-200"></div>
-                <div><label class="block text-sm font-medium text-slate-400 mb-1">Adresse Email</label><input type="email" required class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-slate-200"></div>
-                <div><label class="block text-sm font-medium text-slate-400 mb-1">Mot de passe provisoire</label><input type="password" required class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-slate-200"></div>
+            <form id="form-create-user" class="space-y-4">
+                <div><label class="block text-sm font-medium text-slate-400 mb-1">Nom complet</label><input type="text" id="new-name" required class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-slate-200"></div>
+                <div><label class="block text-sm font-medium text-slate-400 mb-1">Adresse Email</label><input type="email" id="new-email" required class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-slate-200"></div>
+                <div><label class="block text-sm font-medium text-slate-400 mb-1">Rôle</label>
+                    <select id="new-role" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-slate-200 focus:outline-none focus:border-indigo-500">
+                        <option value="User">Utilisateur (User)</option>
+                        <option value="Admin">Administrateur (Admin)</option>
+                    </select>
+                </div>
+                <div><label class="block text-sm font-medium text-slate-400 mb-1">Mot de passe provisoire</label><input type="password" id="new-password" required class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-slate-200"></div>
+                
+                <div id="create-user-msg" class="text-sm font-medium hidden"></div>
+
                 <div class="flex justify-end gap-3 pt-4 border-t border-slate-800">
                     <button type="button" onclick="toggleCreateUserModal()" class="px-4 py-2 text-sm font-medium text-slate-400 hover:text-slate-200">Annuler</button>
                     <button type="submit" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-lg text-sm font-semibold text-white">Créer le compte</button>
@@ -201,10 +132,22 @@
     </div>
 
     <script>
+        // --- 1. APPLIQUER LA SESSION ---
+        document.getElementById('display-session-name').innerText = sessionName;
+        if (sessionRole !== 'Admin') {
+            document.getElementById('btn-create-account').classList.add('hidden');
+            document.getElementById('tab-requests').classList.add('hidden');
+        }
+
+        function logout() {
+            localStorage.clear();
+            window.location.href = '/login.html';
+        }
+
+        // --- 2. LOGIQUE UI CALENDRIER ---
         let currentDate = new Date();
         let currentCalendarView = 'week';
 
-        // Navigation entre Onglets Principaux (Calendrier vs Demandes)
         function switchTab(tabName) {
             const tabCalBtn = document.getElementById('tab-calendar');
             const tabReqBtn = document.getElementById('tab-requests');
@@ -221,7 +164,7 @@
                 tabCalBtn.className = "px-4 py-1.5 text-sm rounded-md font-medium text-slate-400 hover:text-slate-200 transition";
                 mainReqBlock.classList.remove('hidden'); mainReqBlock.classList.add('flex');
                 mainCalBlock.classList.add('hidden'); mainCalBlock.classList.remove('flex');
-                renderMonthGrid(); // S'assure que tout s'actualise
+                renderMonthGrid();
             }
         }
 
@@ -259,9 +202,8 @@
 
             for(let i = 0; i < 7; i++) {
                 const d = new Date(monday); d.setDate(monday.getDate() + i);
-                const dateNum = String(d.getDate()).padStart(2, '0');
                 const header = document.getElementById('header-' + daysIds[i]);
-                if(header) header.innerHTML = `${dayNames[i]} ${dateNum}`;
+                if(header) header.innerHTML = `${dayNames[i]} ${String(d.getDate()).padStart(2, '0')}`;
             }
         }
 
@@ -273,16 +215,8 @@
             const grid = document.getElementById('month-grid');
             if(!grid) return;
             grid.innerHTML = ''; 
-
-            for(let i = 0; i < startDay; i++) {
-                grid.innerHTML += `<div class="border-r border-b border-slate-800/30 p-2 bg-slate-900/20"></div>`;
-            }
-            for(let i = 1; i <= daysInMonth; i++) {
-                grid.innerHTML += `
-                    <div class="border-r border-b border-slate-800 p-2 hover:bg-slate-800/50 transition flex flex-col group cursor-pointer">
-                        <span class="text-sm font-medium text-slate-400 group-hover:text-indigo-400">${i}</span>
-                    </div>`;
-            }
+            for(let i = 0; i < startDay; i++) { grid.innerHTML += `<div class="border-r border-b border-slate-800/30 p-2 bg-slate-900/20"></div>`; }
+            for(let i = 1; i <= daysInMonth; i++) { grid.innerHTML += `<div class="border-r border-b border-slate-800 p-2 hover:bg-slate-800/50 transition flex flex-col group cursor-pointer"><span class="text-sm font-medium text-slate-400 group-hover:text-indigo-400">${i}</span></div>`; }
         }
 
         function changeDate(offset) {
@@ -313,6 +247,45 @@
         function toggleCreateUserModal() { document.getElementById('create-user-modal').classList.toggle('hidden'); }
 
         updateUI();
+
+        // --- 3. REQUETE BACKEND : CREATION UTILISATEUR ---
+        document.getElementById('form-create-user').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const payload = {
+                name: document.getElementById('new-name').value,
+                email: document.getElementById('new-email').value,
+                role: document.getElementById('new-role').value,
+                password_temp: document.getElementById('new-password').value
+            };
+
+            try {
+                const response = await fetch('/api/users', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const msgDiv = document.getElementById('create-user-msg');
+                msgDiv.classList.remove('hidden');
+
+                if (response.ok) {
+                    msgDiv.className = "text-sm font-medium text-emerald-400 mt-2";
+                    msgDiv.innerText = "Utilisateur créé avec succès !";
+                    setTimeout(() => {
+                        toggleCreateUserModal();
+                        document.getElementById('form-create-user').reset();
+                        msgDiv.classList.add('hidden');
+                    }, 1500);
+                } else {
+                    const errorText = await response.text();
+                    msgDiv.className = "text-sm font-medium text-rose-400 mt-2";
+                    msgDiv.innerText = errorText;
+                }
+            } catch (error) {
+                console.error("Erreur réseau :", error);
+            }
+        });
     </script>
 </body>
 </html>
