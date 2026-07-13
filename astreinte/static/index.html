@@ -6,7 +6,7 @@
     <title>Gestion des Astreintes SSI</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
-        // REDIRECTION IMMEDIATE SI NON CONNECTÉ (avant même de charger la page)
+        // REDIRECTION IMMEDIATE SI NON CONNECTÉ
         const sessionName = localStorage.getItem('session_name');
         const sessionRole = localStorage.getItem('session_role');
         if (!sessionName || !sessionRole) { window.location.replace('/login.html'); }
@@ -14,7 +14,6 @@
 </head>
 <body class="h-full flex flex-col font-sans">
 
-    <!-- Navbar -->
     <header class="flex items-center justify-between border-b border-slate-800 bg-slate-950 px-6 py-4">
         <h1 class="text-xl font-bold tracking-tight text-indigo-400">Astreintes SSI</h1>
         <div class="flex items-center gap-6">
@@ -60,19 +59,21 @@
             </div>
             <div class="flex-1 grid grid-cols-8 grid-rows-2">
                 <div class="row-start-1 col-start-1 border-r border-b border-slate-800 bg-slate-900/30 px-4 flex flex-col justify-center"><span class="font-medium text-sm">Shift Jour</span><span class="text-xs text-slate-500">07h00 - 19h00</span></div>
-                <div class="row-start-1 col-start-2 border-r border-b border-slate-800 p-2 hover:bg-slate-800/40"></div>
-                <div class="row-start-1 col-start-3 border-r border-b border-slate-800 p-2 hover:bg-slate-800/40"></div>
-                <div class="row-start-1 col-start-4 border-r border-b border-slate-800 p-2 hover:bg-slate-800/40"></div>
-                <div class="row-start-1 col-start-5 border-r border-b border-slate-800 p-2 hover:bg-slate-800/40"></div>
-                <div class="row-start-1 col-start-6 border-r border-b border-slate-800 p-2 hover:bg-slate-800/40"></div>
-                <div class="row-start-1 row-span-2 col-start-7 border-r border-slate-800 bg-indigo-900/10 hover:bg-indigo-900/20"></div>
-                <div class="row-start-1 row-span-2 col-start-8 bg-indigo-900/10 hover:bg-indigo-900/20"></div>
+                <div class="row-start-1 col-start-2 border-r border-b border-slate-800 p-2 hover:bg-slate-800/40 cursor-pointer" onclick="openRequestModal(0, 'Jour')"></div>
+                <div class="row-start-1 col-start-3 border-r border-b border-slate-800 p-2 hover:bg-slate-800/40 cursor-pointer" onclick="openRequestModal(1, 'Jour')"></div>
+                <div class="row-start-1 col-start-4 border-r border-b border-slate-800 p-2 hover:bg-slate-800/40 cursor-pointer" onclick="openRequestModal(2, 'Jour')"></div>
+                <div class="row-start-1 col-start-5 border-r border-b border-slate-800 p-2 hover:bg-slate-800/40 cursor-pointer" onclick="openRequestModal(3, 'Jour')"></div>
+                <div class="row-start-1 col-start-6 border-r border-b border-slate-800 p-2 hover:bg-slate-800/40 cursor-pointer" onclick="openRequestModal(4, 'Jour')"></div>
+                
+                <div class="row-start-1 row-span-2 col-start-7 border-r border-slate-800 bg-indigo-900/10 hover:bg-indigo-900/20 cursor-pointer" onclick="openRequestModal(5, '24h')"></div>
+                <div class="row-start-1 row-span-2 col-start-8 bg-indigo-900/10 hover:bg-indigo-900/20 cursor-pointer" onclick="openRequestModal(6, '24h')"></div>
+                
                 <div class="row-start-2 col-start-1 border-r border-slate-800 bg-slate-900/30 px-4 flex flex-col justify-center"><span class="font-medium text-sm">Shift Nuit</span><span class="text-xs text-slate-500">19h00 - 07h00</span></div>
-                <div class="row-start-2 col-start-2 border-r border-slate-800 p-2 hover:bg-slate-800/40"></div>
-                <div class="row-start-2 col-start-3 border-r border-slate-800 p-2 hover:bg-slate-800/40"></div>
-                <div class="row-start-2 col-start-4 border-r border-slate-800 p-2 hover:bg-slate-800/40"></div>
-                <div class="row-start-2 col-start-5 border-r border-slate-800 p-2 hover:bg-slate-800/40"></div>
-                <div class="row-start-2 col-start-6 border-r border-slate-800 p-2 hover:bg-slate-800/40"></div>
+                <div class="row-start-2 col-start-2 border-r border-slate-800 p-2 hover:bg-slate-800/40 cursor-pointer" onclick="openRequestModal(0, 'Nuit')"></div>
+                <div class="row-start-2 col-start-3 border-r border-slate-800 p-2 hover:bg-slate-800/40 cursor-pointer" onclick="openRequestModal(1, 'Nuit')"></div>
+                <div class="row-start-2 col-start-4 border-r border-b border-slate-800 p-2 hover:bg-slate-800/40 cursor-pointer" onclick="openRequestModal(2, 'Nuit')"></div>
+                <div class="row-start-2 col-start-5 border-r border-b border-slate-800 p-2 hover:bg-slate-800/40 cursor-pointer" onclick="openRequestModal(3, 'Nuit')"></div>
+                <div class="row-start-2 col-start-6 border-r border-b border-slate-800 p-2 hover:bg-slate-800/40 cursor-pointer" onclick="openRequestModal(4, 'Nuit')"></div>
             </div>
         </div>
 
@@ -97,13 +98,41 @@
         </div>
     </main>
 
-    <!-- MODALES -->
     <div id="pref-modal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
         <div class="bg-slate-900 border border-slate-800 rounded-xl max-w-md w-full p-6 shadow-xl">
-            <h3 class="text-lg font-bold text-slate-100 mb-4">Soumettre mes préférences</h3>
-            <div class="flex justify-end gap-3 pt-2">
-                <button type="button" onclick="toggleModal()" class="px-4 py-2 text-sm font-medium text-slate-400 hover:text-slate-200">Fermer</button>
-            </div>
+            <h3 class="text-lg font-bold text-slate-100 mb-4">Faire une demande de créneau</h3>
+            
+            <form id="form-request" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-slate-400 mb-1">Date souhaitée</label>
+                    <input type="date" id="req-date" required class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-slate-200 focus:outline-none focus:border-emerald-500">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-slate-400 mb-1">Type de Shift</label>
+                    <select id="req-type" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-slate-200 focus:outline-none focus:border-emerald-500">
+                        <option value="Jour">Jour (07h00 - 19h00)</option>
+                        <option value="Nuit">Nuit (19h00 - 07h00)</option>
+                        <option value="24h">Weekend (24h)</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-slate-400 mb-1">Niveau de préférence</label>
+                    <select id="req-pref" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-slate-200 focus:outline-none focus:border-emerald-500">
+                        <option value="1">Disponible</option>
+                        <option value="2">Flexible</option>
+                        <option value="3">Indisponible</option>
+                    </select>
+                </div>
+
+                <div id="req-msg" class="text-sm font-medium hidden"></div>
+
+                <div class="flex justify-end gap-3 pt-4 border-t border-slate-800">
+                    <button type="button" onclick="toggleModal()" class="px-4 py-2 text-sm font-medium text-slate-400 hover:text-slate-200">Annuler</button>
+                    <button type="submit" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 rounded-lg text-sm font-semibold text-white">Soumettre la demande</button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -132,11 +161,18 @@
     </div>
 
     <script>
-        // --- 1. APPLIQUER LA SESSION ---
-        document.getElementById('display-session-name').innerText = sessionName;
-        if (sessionRole !== 'Admin') {
-            document.getElementById('btn-create-account').classList.add('hidden');
-            document.getElementById('tab-requests').classList.add('hidden');
+        // --- 1. CHARGEMENT ET DROITS DE LA SESSION ---
+        const sName = localStorage.getItem('session_name');
+        const sRole = localStorage.getItem('session_role');
+
+        if (sName && sRole) {
+            document.getElementById('display-session-name').innerText = sName;
+            if (sRole !== 'Admin') {
+                const btnCreate = document.getElementById('btn-create-account');
+                const tabReq = document.getElementById('tab-requests');
+                if(btnCreate) btnCreate.classList.add('hidden');
+                if(tabReq) tabReq.classList.add('hidden');
+            }
         }
 
         function logout() {
@@ -144,7 +180,7 @@
             window.location.href = '/login.html';
         }
 
-        // --- 2. LOGIQUE UI CALENDRIER ---
+        // --- 2. LOGIQUE TEMPORELLE DU CALENDRIER ---
         let currentDate = new Date();
         let currentCalendarView = 'week';
 
@@ -164,7 +200,6 @@
                 tabCalBtn.className = "px-4 py-1.5 text-sm rounded-md font-medium text-slate-400 hover:text-slate-200 transition";
                 mainReqBlock.classList.remove('hidden'); mainReqBlock.classList.add('flex');
                 mainCalBlock.classList.add('hidden'); mainCalBlock.classList.remove('flex');
-                renderMonthGrid();
             }
         }
 
@@ -243,48 +278,118 @@
             updateUI();
         }
 
-        function toggleModal() { document.getElementById('pref-modal').classList.toggle('hidden'); }
-        function toggleCreateUserModal() { document.getElementById('create-user-modal').classList.toggle('hidden'); }
+        // --- 3. LOGIQUE DU FORMULAIRE DE DEMANDE ---
+        function openRequestModal(dayIndex, shiftType) {
+            const curr = new Date(currentDate);
+            const day = curr.getDay();
+            const diffToMonday = curr.getDate() - day + (day === 0 ? -6 : 1);
+            const targetDate = new Date(curr.setDate(diffToMonday + dayIndex));
 
+            const y = targetDate.getFullYear();
+            const m = String(targetDate.getMonth() + 1).padStart(2, '0');
+            const d = String(targetDate.getDate()).padStart(2, '0');
+
+            document.getElementById('req-date').value = `${y}-${m}-${d}`;
+            
+            // Initialisation des options du select au clic sur la grille
+            const typeSelect = document.getElementById('req-type');
+            typeSelect.innerHTML = '';
+            if (shiftType === '24h') {
+                typeSelect.innerHTML = `<option value="24h">Shift 24h (Week-end)</option>`;
+            } else {
+                typeSelect.innerHTML = `
+                    <option value="Jour">Shift Jour (07h00 - 19h00)</option>
+                    <option value="Nuit">Shift Nuit (19h00 - 07h00)</option>
+                `;
+            }
+            typeSelect.value = shiftType;
+
+            document.getElementById('pref-modal').classList.remove('hidden');
+        }
+
+        // Écouteur de changement manuel sur l'input date pour brider les options du week-end
+        document.getElementById('req-date').addEventListener('change', (e) => {
+            const dateVal = e.target.value;
+            if (!dateVal) return;
+            
+            const dateObj = new Date(dateVal);
+            const dayOfWeek = dateObj.getDay(); // 0 = Dimanche, 6 = Samedi
+            const typeSelect = document.getElementById('req-type');
+            
+            typeSelect.innerHTML = '';
+            if (dayOfWeek === 0 || dayOfWeek === 6) {
+                typeSelect.innerHTML = `<option value="24h">Shift 24h (Week-end)</option>`;
+            } else {
+                typeSelect.innerHTML = `
+                    <option value="Jour">Shift Jour (07h00 - 19h00)</option>
+                    <option value="Nuit">Shift Nuit (19h00 - 07h00)</option>
+                `;
+            }
+        });
+
+        function toggleModal() { 
+            const modal = document.getElementById('pref-modal');
+            modal.classList.toggle('hidden'); 
+            if (modal.classList.contains('hidden')) {
+                document.getElementById('form-request').reset();
+                document.getElementById('req-msg').classList.add('hidden');
+            }
+        }
+        
+        function toggleCreateUserModal() { 
+            const modal = document.getElementById('create-user-modal');
+            modal.classList.toggle('hidden'); 
+            if (modal.classList.contains('hidden')) {
+                document.getElementById('form-create-user').reset();
+                document.getElementById('create-user-msg').classList.add('hidden');
+            }
+        }
+
+        // Lancement initial
         updateUI();
 
-        // --- 3. REQUETE BACKEND : CREATION UTILISATEUR ---
+        // --- 4. TRAITEMENTS SOUUMISSIONS FORMULAIRES ---
+        document.getElementById('form-request').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const payload = {
+                date: document.getElementById('req-date').value,
+                shift_type: document.getElementById('req-type').value,
+                preference: parseInt(document.getElementById('req-pref').value)
+            };
+            console.log("Payload demande créneau :", payload);
+            const msgDiv = document.getElementById('req-msg');
+            msgDiv.className = "text-sm font-medium text-emerald-400 mt-2";
+            msgDiv.innerText = "Demande prête (En attente du backend Rust) !";
+            msgDiv.classList.remove('hidden');
+            setTimeout(() => { toggleModal(); }, 1000);
+        });
+
         document.getElementById('form-create-user').addEventListener('submit', async (e) => {
             e.preventDefault();
-            
             const payload = {
                 name: document.getElementById('new-name').value,
                 email: document.getElementById('new-email').value,
                 role: document.getElementById('new-role').value,
                 password_temp: document.getElementById('new-password').value
             };
-
             try {
                 const response = await fetch('/api/users', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
-
                 const msgDiv = document.getElementById('create-user-msg');
                 msgDiv.classList.remove('hidden');
-
                 if (response.ok) {
                     msgDiv.className = "text-sm font-medium text-emerald-400 mt-2";
                     msgDiv.innerText = "Utilisateur créé avec succès !";
-                    setTimeout(() => {
-                        toggleCreateUserModal();
-                        document.getElementById('form-create-user').reset();
-                        msgDiv.classList.add('hidden');
-                    }, 1500);
+                    setTimeout(() => { toggleCreateUserModal(); }, 1500);
                 } else {
                     const errorText = await response.text();
                     msgDiv.className = "text-sm font-medium text-rose-400 mt-2";
                     msgDiv.innerText = errorText;
                 }
-            } catch (error) {
-                console.error("Erreur réseau :", error);
-            }
+            } catch (error) { console.error("Erreur réseau :", error); }
         });
     </script>
 </body>
