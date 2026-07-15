@@ -12,7 +12,7 @@
 > Recharger le terminal
 
 - Lancer l'application avec Cargo :
-````bash cargo run```
+```bash cargo run```
 
 - Cela va créer un serveur a l'adresse : 
 ```bash http://127.0.0.1:3000/```
