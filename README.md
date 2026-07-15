@@ -3,7 +3,7 @@
 ## Installation
 
 - Cloner le repos:
-```bash git clone https://github.com/LauraPMS/smart-calendar.git```
+```git clone https://github.com/LauraPMS/smart-calendar.git```
 
 - Installer Cargo et rustup :
 > #Windows
@@ -12,7 +12,7 @@
 > Recharger le terminal
 
 - Lancer l'application avec Cargo :
-```bash cargo run```
+```cargo run```
 
 - Cela va créer un serveur a l'adresse : 
-```bash http://127.0.0.1:3000/```
+```http://127.0.0.1:3000/```
