@@ -41,9 +41,6 @@
                 <button id="btn-week" onclick="switchCalendarView('week')" class="px-4 py-1.5 text-sm rounded-md font-medium bg-indigo-600 text-white shadow transition">Semaine</button>
                 <button id="btn-month" onclick="switchCalendarView('month')" class="px-4 py-1.5 text-sm rounded-md font-medium text-slate-400 hover:text-slate-200 transition">Mois</button>
             </div>
-            <button onclick="toggleModal()" class="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg font-semibold text-sm shadow-sm transition">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg> Faire une demande
-            </button>
         </div>
 
         <div id="calendar-view-week" class="flex-1 bg-slate-950 rounded-xl border border-slate-800 overflow-hidden flex flex-col">
@@ -59,21 +56,19 @@
             </div>
             <div class="flex-1 grid grid-cols-8 grid-rows-2">
                 <div class="row-start-1 col-start-1 border-r border-b border-slate-800 bg-slate-900/30 px-4 flex flex-col justify-center"><span class="font-medium text-sm">Shift Jour</span><span class="text-xs text-slate-500">07h00 - 19h00</span></div>
-                <div class="row-start-1 col-start-2 border-r border-b border-slate-800 p-2 hover:bg-slate-800/40 cursor-pointer" onclick="openRequestModal(0, 'Jour')"></div>
-                <div class="row-start-1 col-start-3 border-r border-b border-slate-800 p-2 hover:bg-slate-800/40 cursor-pointer" onclick="openRequestModal(1, 'Jour')"></div>
-                <div class="row-start-1 col-start-4 border-r border-b border-slate-800 p-2 hover:bg-slate-800/40 cursor-pointer" onclick="openRequestModal(2, 'Jour')"></div>
-                <div class="row-start-1 col-start-5 border-r border-b border-slate-800 p-2 hover:bg-slate-800/40 cursor-pointer" onclick="openRequestModal(3, 'Jour')"></div>
-                <div class="row-start-1 col-start-6 border-r border-b border-slate-800 p-2 hover:bg-slate-800/40 cursor-pointer" onclick="openRequestModal(4, 'Jour')"></div>
-                
-                <div class="row-start-1 row-span-2 col-start-7 border-r border-slate-800 bg-indigo-900/10 hover:bg-indigo-900/20 cursor-pointer" onclick="openRequestModal(5, '24h')"></div>
-                <div class="row-start-1 row-span-2 col-start-8 bg-indigo-900/10 hover:bg-indigo-900/20 cursor-pointer" onclick="openRequestModal(6, '24h')"></div>
-                
+                <div class="row-start-1 col-start-2 border-r border-b border-slate-800 p-2 hover:bg-slate-800/40 cursor-pointer flex flex-col justify-end" onclick="openRequestModal(0, 'Jour')"><div id="cell-mon-Jour" class="text-xs font-semibold text-emerald-400 bg-emerald-500/10 p-1.5 rounded border border-emerald-500/20 shadow-sm hidden text-center truncate"></div></div>
+                <div class="row-start-1 col-start-3 border-r border-b border-slate-800 p-2 hover:bg-slate-800/40 cursor-pointer flex flex-col justify-end" onclick="openRequestModal(1, 'Jour')"><div id="cell-tue-Jour" class="text-xs font-semibold text-emerald-400 bg-emerald-500/10 p-1.5 rounded border border-emerald-500/20 shadow-sm hidden text-center truncate"></div></div>
+                <div class="row-start-1 col-start-4 border-r border-b border-slate-800 p-2 hover:bg-slate-800/40 cursor-pointer flex flex-col justify-end" onclick="openRequestModal(2, 'Jour')"><div id="cell-wed-Jour" class="text-xs font-semibold text-emerald-400 bg-emerald-500/10 p-1.5 rounded border border-emerald-500/20 shadow-sm hidden text-center truncate"></div></div>
+                <div class="row-start-1 col-start-5 border-r border-b border-slate-800 p-2 hover:bg-slate-800/40 cursor-pointer flex flex-col justify-end" onclick="openRequestModal(3, 'Jour')"><div id="cell-thu-Jour" class="text-xs font-semibold text-emerald-400 bg-emerald-500/10 p-1.5 rounded border border-emerald-500/20 shadow-sm hidden text-center truncate"></div></div>
+                <div class="row-start-1 col-start-6 border-r border-b border-slate-800 p-2 hover:bg-slate-800/40 cursor-pointer flex flex-col justify-end" onclick="openRequestModal(4, 'Jour')"><div id="cell-fri-Jour" class="text-xs font-semibold text-emerald-400 bg-emerald-500/10 p-1.5 rounded border border-emerald-500/20 shadow-sm hidden text-center truncate"></div></div>
+                <div class="row-start-1 row-span-2 col-start-7 border-r border-slate-800 bg-indigo-900/10 hover:bg-indigo-900/20 cursor-pointer flex flex-col justify-end p-2" onclick="openRequestModal(5, '24h')"><div id="cell-sat-24h" class="text-xs font-semibold text-emerald-400 bg-emerald-500/10 p-1.5 rounded border border-emerald-500/20 shadow-sm hidden text-center truncate"></div></div>
+                <div class="row-start-1 row-span-2 col-start-8 bg-indigo-900/10 hover:bg-indigo-900/20 cursor-pointer flex flex-col justify-end p-2" onclick="openRequestModal(6, '24h')"><div id="cell-sun-24h" class="text-xs font-semibold text-emerald-400 bg-emerald-500/10 p-1.5 rounded border border-emerald-500/20 shadow-sm hidden text-center truncate"></div></div>
                 <div class="row-start-2 col-start-1 border-r border-slate-800 bg-slate-900/30 px-4 flex flex-col justify-center"><span class="font-medium text-sm">Shift Nuit</span><span class="text-xs text-slate-500">19h00 - 07h00</span></div>
-                <div class="row-start-2 col-start-2 border-r border-slate-800 p-2 hover:bg-slate-800/40 cursor-pointer" onclick="openRequestModal(0, 'Nuit')"></div>
-                <div class="row-start-2 col-start-3 border-r border-slate-800 p-2 hover:bg-slate-800/40 cursor-pointer" onclick="openRequestModal(1, 'Nuit')"></div>
-                <div class="row-start-2 col-start-4 border-r border-b border-slate-800 p-2 hover:bg-slate-800/40 cursor-pointer" onclick="openRequestModal(2, 'Nuit')"></div>
-                <div class="row-start-2 col-start-5 border-r border-b border-slate-800 p-2 hover:bg-slate-800/40 cursor-pointer" onclick="openRequestModal(3, 'Nuit')"></div>
-                <div class="row-start-2 col-start-6 border-r border-b border-slate-800 p-2 hover:bg-slate-800/40 cursor-pointer" onclick="openRequestModal(4, 'Nuit')"></div>
+                <div class="row-start-2 col-start-2 border-r border-slate-800 p-2 hover:bg-slate-800/40 cursor-pointer flex flex-col justify-end" onclick="openRequestModal(0, 'Nuit')"><div id="cell-mon-Nuit" class="text-xs font-semibold text-emerald-400 bg-emerald-500/10 p-1.5 rounded border border-emerald-500/20 shadow-sm hidden text-center truncate"></div></div>
+                <div class="row-start-2 col-start-3 border-r border-slate-800 p-2 hover:bg-slate-800/40 cursor-pointer flex flex-col justify-end" onclick="openRequestModal(1, 'Nuit')"><div id="cell-tue-Nuit" class="text-xs font-semibold text-emerald-400 bg-emerald-500/10 p-1.5 rounded border border-emerald-500/20 shadow-sm hidden text-center truncate"></div></div>
+                <div class="row-start-2 col-start-4 border-r border-b border-slate-800 p-2 hover:bg-slate-800/40 cursor-pointer flex flex-col justify-end" onclick="openRequestModal(2, 'Nuit')"><div id="cell-wed-Nuit" class="text-xs font-semibold text-emerald-400 bg-emerald-500/10 p-1.5 rounded border border-emerald-500/20 shadow-sm hidden text-center truncate"></div></div>
+                <div class="row-start-2 col-start-5 border-r border-b border-slate-800 p-2 hover:bg-slate-800/40 cursor-pointer flex flex-col justify-end" onclick="openRequestModal(3, 'Nuit')"><div id="cell-thu-Nuit" class="text-xs font-semibold text-emerald-400 bg-emerald-500/10 p-1.5 rounded border border-emerald-500/20 shadow-sm hidden text-center truncate"></div></div>
+                <div class="row-start-2 col-start-6 border-r border-b border-slate-800 p-2 hover:bg-slate-800/40 cursor-pointer flex flex-col justify-end" onclick="openRequestModal(4, 'Nuit')"><div id="cell-fri-Nuit" class="text-xs font-semibold text-emerald-400 bg-emerald-500/10 p-1.5 rounded border border-emerald-500/20 shadow-sm hidden text-center truncate"></div></div>
             </div>
         </div>
 
@@ -101,33 +96,28 @@
     <div id="pref-modal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
         <div class="bg-slate-900 border border-slate-800 rounded-xl max-w-md w-full p-6 shadow-xl">
             <h3 class="text-lg font-bold text-slate-100 mb-4">Faire une demande de créneau</h3>
-            
             <form id="form-request" class="space-y-4">
                 <div>
                     <label class="block text-sm font-medium text-slate-400 mb-1">Date souhaitée</label>
                     <input type="date" id="req-date" required class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-slate-200 focus:outline-none focus:border-emerald-500">
                 </div>
-                
                 <div>
                     <label class="block text-sm font-medium text-slate-400 mb-1">Type de Shift</label>
                     <select id="req-type" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-slate-200 focus:outline-none focus:border-emerald-500">
-                        <option value="Jour">Jour (07h00 - 19h00)</option>
-                        <option value="Nuit">Nuit (19h00 - 07h00)</option>
-                        <option value="24h">Weekend (24h)</option>
+                        <option value="Jour">Shift Jour (07h00 - 19h00)</option>
+                        <option value="Nuit">Shift Nuit (19h00 - 07h00)</option>
+                        <option value="24h">Shift 24h (Week-end)</option>
                     </select>
                 </div>
-
                 <div>
                     <label class="block text-sm font-medium text-slate-400 mb-1">Niveau de préférence</label>
                     <select id="req-pref" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-slate-200 focus:outline-none focus:border-emerald-500">
-                        <option value="1">Disponible</option>
-                        <option value="2">Flexible</option>
-                        <option value="3">Indisponible</option>
+                        <option value="1">1 : Dispo à 100% (Je veux ce shift)</option>
+                        <option value="2">2 : Flexible (Je peux laisser ma place)</option>
+                        <option value="3">3 : Indisponible (Absolument pas dispo)</option>
                     </select>
                 </div>
-
                 <div id="req-msg" class="text-sm font-medium hidden"></div>
-
                 <div class="flex justify-end gap-3 pt-4 border-t border-slate-800">
                     <button type="button" onclick="toggleModal()" class="px-4 py-2 text-sm font-medium text-slate-400 hover:text-slate-200">Annuler</button>
                     <button type="submit" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 rounded-lg text-sm font-semibold text-white">Soumettre la demande</button>
@@ -161,102 +151,22 @@
     </div>
 
     <script>
-        // --- 1. CHARGEMENT ET DROITS DE LA SESSION ---
-        const sName = localStorage.getItem('session_name');
-        const sRole = localStorage.getItem('session_role');
-
-        if (sName && sRole) {
-            document.getElementById('display-session-name').innerText = sName;
-            if (sRole !== 'Admin') {
+        // 1. Initialisation Interface
+        if (sessionName && sessionRole) {
+            document.getElementById('display-session-name').innerText = sessionName;
+            if (sessionRole !== 'Admin') {
                 const btnCreate = document.getElementById('btn-create-account');
                 const tabReq = document.getElementById('tab-requests');
                 if(btnCreate) btnCreate.classList.add('hidden');
                 if(tabReq) tabReq.classList.add('hidden');
             }
         }
+        function logout() { localStorage.clear(); window.location.href = '/login.html'; }
 
-        function logout() {
-            localStorage.clear();
-            window.location.href = '/login.html';
-        }
-
-        // --- 2. LOGIQUE TEMPORELLE DU CALENDRIER ---
+        // 2. Gestion Temporelle
         let currentDate = new Date();
         let currentCalendarView = 'week';
-        // Fonction pour récupérer et afficher les requêtes en base
-        async function loadRequests() {
-            if (localStorage.getItem('session_role') !== 'Admin') return;
-            const container = document.getElementById('requests-container');
-            if (!container) return;
 
-            try {
-                const response = await fetch('/api/requests');
-                if (response.ok) {
-                    const requests = await response.json();
-                    if (requests.length === 0) {
-                        container.innerHTML = "Aucune demande en attente.";
-                        container.className = "bg-slate-950 border border-slate-800 rounded-xl p-4 flex items-center justify-center text-slate-400";
-                        return;
-                    }
-
-                    container.className = "space-y-3";
-                    container.innerHTML = requests.map(req => `
-                        <div class="bg-slate-950 border border-slate-800 p-4 rounded-xl flex items-center justify-between shadow-sm transition hover:border-slate-700">
-                            <div>
-                                <div class="text-sm font-semibold text-slate-200">${req.user_email}</div>
-                                <div class="text-xs text-slate-400 mt-1">Date : <span class="text-indigo-400 font-medium">${req.date}</span> | Shift : <span class="text-indigo-400 font-medium">${req.shift_type}</span></div>
-                            </div>
-                            <div class="flex items-center gap-4">
-                                <span class="px-2.5 py-1 text-xs font-semibold rounded-full ${
-                                    req.preference === 1 ? 'text-emerald-400 bg-emerald-500/10 border border-emerald-500/20' : 
-                                    req.preference === 2 ? 'text-amber-400 bg-amber-500/10 border border-amber-500/20' : 
-                                    'text-rose-400 bg-rose-500/10 border border-rose-500/20'
-                                }">Pref : ${req.preference}</span>
-                                
-                                <span class="text-xs font-medium px-2.5 py-1 rounded-md border ${
-                                    req.status === 'Validée' ? 'text-emerald-400 bg-emerald-400/10 border-emerald-400/20' :
-                                    req.status === 'Refusée' ? 'text-rose-400 bg-rose-400/10 border-rose-400/20' :
-                                    'text-amber-500 bg-amber-500/10 border-amber-500/20'
-                                }">${req.status}</span>
-
-                                ${req.status === 'En attente' ? `
-                                <div class="flex gap-2 ml-2 border-l border-slate-800 pl-4">
-                                    <button onclick="updateStatus(${req.request_id}, 'Validée')" class="p-1.5 text-emerald-500 hover:bg-emerald-500/20 rounded-lg transition" title="Valider">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                                    </button>
-                                    <button onclick="updateStatus(${req.request_id}, 'Refusée')" class="p-1.5 text-rose-500 hover:bg-rose-500/20 rounded-lg transition" title="Refuser">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                                    </button>
-                                </div>
-                                ` : ''}
-                            </div>
-                        </div>
-                    `).join('');
-                }
-            } catch (err) {
-                console.error("Erreur lors de la récupération :", err);
-            }
-        }
-
-        async function updateStatus(requestId, newStatus) {
-            try {
-                const response = await fetch('/api/requests/update', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ request_id: requestId, new_status: newStatus })
-                });
-
-                if (response.ok) {
-                    loadRequests(); // Recharge la liste instantanément pour voir le changement !
-                } else {
-                    alert("Erreur lors de la mise à jour");
-                }
-            } catch (error) {
-                console.error("Erreur réseau :", error);
-            }
-        }
-
-        // Modifie ta fonction switchTab existante pour inclure le chargement :
         function switchTab(tabName) {
             const tabCalBtn = document.getElementById('tab-calendar');
             const tabReqBtn = document.getElementById('tab-requests');
@@ -268,12 +178,13 @@
                 tabReqBtn.className = "px-4 py-1.5 text-sm rounded-md font-medium text-slate-400 hover:text-slate-200 transition relative";
                 mainCalBlock.classList.remove('hidden'); mainCalBlock.classList.add('flex');
                 mainReqBlock.classList.add('hidden'); mainReqBlock.classList.remove('flex');
+                loadCalendarShifts();
             } else {
                 tabReqBtn.className = "px-4 py-1.5 text-sm rounded-md font-medium bg-indigo-600 text-white shadow transition relative";
                 tabCalBtn.className = "px-4 py-1.5 text-sm rounded-md font-medium text-slate-400 hover:text-slate-200 transition";
                 mainReqBlock.classList.remove('hidden'); mainReqBlock.classList.add('flex');
                 mainCalBlock.classList.add('hidden'); mainCalBlock.classList.remove('flex');
-                loadRequests(); // <-- CHARGEMENT DES REQUÊTES ICI
+                loadRequests();
             }
         }
 
@@ -288,17 +199,14 @@
             const monthStr = currentDate.toLocaleString('fr-FR', { month: 'long' });
             const monthCap = monthStr.charAt(0).toUpperCase() + monthStr.slice(1);
             const year = currentDate.getFullYear();
-
             if(currentCalendarView === 'week') {
                 document.getElementById('week-display').innerHTML = `Semaine <span class="font-bold text-indigo-400">${getWeekNumber(currentDate)}</span> &mdash; ${monthCap} ${year}`;
                 renderWeekHeaders();
             } else if(currentCalendarView === 'month') {
                 document.getElementById('week-display').innerHTML = `<span class="font-bold text-indigo-400">${monthCap}</span> ${year}`;
                 renderMonthGrid();
-            } else {
-                const dayStr = currentDate.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
-                document.getElementById('week-display').innerHTML = dayStr.charAt(0).toUpperCase() + dayStr.slice(1);
             }
+            loadCalendarShifts();
         }
 
         function renderWeekHeaders() {
@@ -331,7 +239,6 @@
         function changeDate(offset) {
             if(currentCalendarView === 'week') currentDate.setDate(currentDate.getDate() + (offset * 7));
             else if(currentCalendarView === 'month') currentDate.setMonth(currentDate.getMonth() + offset);
-            else currentDate.setDate(currentDate.getDate() + offset);
             updateUI();
         }
 
@@ -352,113 +259,148 @@
             updateUI();
         }
 
-        // --- 3. LOGIQUE DU FORMULAIRE DE DEMANDE ---
+        // 3. Logique de Modales
         function openRequestModal(dayIndex, shiftType) {
             const curr = new Date(currentDate);
             const day = curr.getDay();
             const diffToMonday = curr.getDate() - day + (day === 0 ? -6 : 1);
             const targetDate = new Date(curr.setDate(diffToMonday + dayIndex));
-
             const y = targetDate.getFullYear();
             const m = String(targetDate.getMonth() + 1).padStart(2, '0');
             const d = String(targetDate.getDate()).padStart(2, '0');
 
             document.getElementById('req-date').value = `${y}-${m}-${d}`;
-            
-            // Initialisation des options du select au clic sur la grille
             const typeSelect = document.getElementById('req-type');
-            typeSelect.innerHTML = '';
-            if (shiftType === '24h') {
-                typeSelect.innerHTML = `<option value="24h">Shift 24h (Week-end)</option>`;
-            } else {
-                typeSelect.innerHTML = `
-                    <option value="Jour">Shift Jour (07h00 - 19h00)</option>
-                    <option value="Nuit">Shift Nuit (19h00 - 07h00)</option>
-                `;
-            }
+            if (shiftType === '24h') typeSelect.innerHTML = `<option value="24h">Shift 24h (Week-end)</option>`;
+            else typeSelect.innerHTML = `<option value="Jour">Shift Jour (07h00 - 19h00)</option><option value="Nuit">Shift Nuit (19h00 - 07h00)</option>`;
             typeSelect.value = shiftType;
-
             document.getElementById('pref-modal').classList.remove('hidden');
         }
 
-        // Écouteur de changement manuel sur l'input date pour brider les options du week-end
         document.getElementById('req-date').addEventListener('change', (e) => {
             const dateVal = e.target.value;
             if (!dateVal) return;
-            
-            const dateObj = new Date(dateVal);
-            const dayOfWeek = dateObj.getDay(); // 0 = Dimanche, 6 = Samedi
+            const dayOfWeek = new Date(dateVal).getDay();
             const typeSelect = document.getElementById('req-type');
-            
-            typeSelect.innerHTML = '';
-            if (dayOfWeek === 0 || dayOfWeek === 6) {
-                typeSelect.innerHTML = `<option value="24h">Shift 24h (Week-end)</option>`;
-            } else {
-                typeSelect.innerHTML = `
-                    <option value="Jour">Shift Jour (07h00 - 19h00)</option>
-                    <option value="Nuit">Shift Nuit (19h00 - 07h00)</option>
-                `;
-            }
+            if (dayOfWeek === 0 || dayOfWeek === 6) typeSelect.innerHTML = `<option value="24h">Shift 24h (Week-end)</option>`;
+            else typeSelect.innerHTML = `<option value="Jour">Shift Jour (07h00 - 19h00)</option><option value="Nuit">Shift Nuit (19h00 - 07h00)</option>`;
         });
 
         function toggleModal() { 
             const modal = document.getElementById('pref-modal');
             modal.classList.toggle('hidden'); 
-            if (modal.classList.contains('hidden')) {
-                document.getElementById('form-request').reset();
-                document.getElementById('req-msg').classList.add('hidden');
-            }
+            if (modal.classList.contains('hidden')) { document.getElementById('form-request').reset(); document.getElementById('req-msg').classList.add('hidden'); }
         }
         
         function toggleCreateUserModal() { 
             const modal = document.getElementById('create-user-modal');
             modal.classList.toggle('hidden'); 
-            if (modal.classList.contains('hidden')) {
-                document.getElementById('form-create-user').reset();
-                document.getElementById('create-user-msg').classList.add('hidden');
-            }
+            if (modal.classList.contains('hidden')) { document.getElementById('form-create-user').reset(); document.getElementById('create-user-msg').classList.add('hidden'); }
         }
 
-        // Lancement initial
-        updateUI();
+        // 4. API : Chargement des données
+        async function loadCalendarShifts() {
+            const daysIds = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+            const types = ['Jour', 'Nuit', '24h'];
+            daysIds.forEach(d => { types.forEach(t => { const cell = document.getElementById(`cell-${d}-${t}`); if (cell) { cell.innerText = ''; cell.classList.add('hidden'); } }); });
 
-        // --- 4. TRAITEMENTS SOUMISSIONS FORMULAIRES ---
+            const curr = new Date(currentDate);
+            const day = curr.getDay();
+            const diffToMonday = curr.getDate() - day + (day === 0 ? -6 : 1);
+            const monday = new Date(curr.setDate(diffToMonday));
+            const weekDatesMap = {}; 
+            for (let i = 0; i < 7; i++) {
+                const d = new Date(monday); d.setDate(monday.getDate() + i);
+                weekDatesMap[`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`] = daysIds[i];
+            }
+
+            try {
+                const response = await fetch('/api/requests');
+                if (response.ok) {
+                    const requests = await response.json();
+                    requests.forEach(req => {
+                        if (req.status === 'Validée' && weekDatesMap[req.date]) {
+                            const badge = document.getElementById(`cell-${weekDatesMap[req.date]}-${req.shift_type}`);
+                            if (badge) { badge.innerText = "🛡️ " + req.user_email.split('@')[0]; badge.classList.remove('hidden'); }
+                        }
+                    });
+                }
+            } catch (err) { console.error("Erreur calendrier :", err); }
+        }
+
+        async function loadRequests() {
+            if (localStorage.getItem('session_role') !== 'Admin') return;
+            const container = document.getElementById('requests-container');
+            if (!container) return;
+
+            try {
+                const response = await fetch('/api/requests');
+                if (response.ok) {
+                    const requests = await response.json();
+                    if (requests.length === 0) {
+                        container.innerHTML = "Aucune demande en attente.";
+                        container.className = "bg-slate-950 border border-slate-800 rounded-xl p-4 flex items-center justify-center text-slate-400";
+                        return;
+                    }
+                    container.className = "space-y-3";
+                    container.innerHTML = requests.map(req => `
+                        <div class="bg-slate-950 border border-slate-800 p-4 rounded-xl flex items-center justify-between shadow-sm transition hover:border-slate-700">
+                            <div><div class="text-sm font-semibold text-slate-200">${req.user_email}</div><div class="text-xs text-slate-400 mt-1">Date : <span class="text-indigo-400 font-medium">${req.date}</span> | Shift : <span class="text-indigo-400 font-medium">${req.shift_type}</span></div></div>
+                            <div class="flex items-center gap-4">
+                                <span class="px-2.5 py-1 text-xs font-semibold rounded-full ${req.preference === 1 ? 'text-emerald-400 bg-emerald-500/10 border border-emerald-500/20' : req.preference === 2 ? 'text-amber-400 bg-amber-500/10 border border-amber-500/20' : 'text-rose-400 bg-rose-500/10 border border-rose-500/20'}">Pref : ${req.preference}</span>
+                                <span class="text-xs font-medium px-2.5 py-1 rounded-md border ${req.status === 'Validée' ? 'text-emerald-400 bg-emerald-400/10 border-emerald-400/20' : req.status === 'Refusée' ? 'text-rose-400 bg-rose-400/10 border-rose-400/20' : 'text-amber-500 bg-amber-500/10 border-amber-500/20'}">${req.status}</span>
+                                ${req.status === 'En attente' ? `<div class="flex gap-2 ml-2 border-l border-slate-800 pl-4"><button onclick="updateStatus(${req.request_id}, 'Validée')" class="p-1.5 text-emerald-500 hover:bg-emerald-500/20 rounded-lg"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg></button><button onclick="updateStatus(${req.request_id}, 'Refusée')" class="p-1.5 text-rose-500 hover:bg-rose-500/20 rounded-lg"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button></div>` : ''}
+                            </div>
+                        </div>
+                    `).join('');
+                }
+            } catch (err) { console.error("Erreur de récupération :", err); }
+        }
+
+        async function updateStatus(requestId, newStatus) {
+            try {
+                const response = await fetch('/api/requests/update', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ request_id: requestId, new_status: newStatus }) });
+                if (response.ok) loadRequests();
+            } catch (error) { console.error("Erreur réseau :", error); }
+        }
+
+        // 5. API : Créations
         document.getElementById('form-request').addEventListener('submit', async (e) => {
             e.preventDefault();
-            
             const payload = {
                 user_email: localStorage.getItem('session_email') || "inconnu@ssi.fr",
                 date: document.getElementById('req-date').value,
                 shift_type: document.getElementById('req-type').value,
                 preference: parseInt(document.getElementById('req-pref').value)
             };
-            
             const msgDiv = document.getElementById('req-msg');
-            msgDiv.classList.remove('hidden');
-            msgDiv.className = "text-sm font-medium text-slate-400 mt-2";
-            msgDiv.innerText = "Transmission en cours...";
-
+            msgDiv.classList.remove('hidden'); msgDiv.className = "text-sm font-medium text-slate-400 mt-2"; msgDiv.innerText = "Transmission...";
             try {
-                const response = await fetch('/api/requests', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-
-                if (response.ok) {
-                    msgDiv.className = "text-sm font-medium text-emerald-400 mt-2";
-                    msgDiv.innerText = "Demande soumise avec succès !";
-                    setTimeout(() => { toggleModal(); }, 1000);
-                } else {
-                    const txt = await response.text();
-                    msgDiv.className = "text-sm font-medium text-rose-400 mt-2";
-                    msgDiv.innerText = "Erreur : " + txt;
-                }
-            } catch (err) {
-                msgDiv.className = "text-sm font-medium text-rose-400 mt-2";
-                msgDiv.innerText = "Erreur de communication avec le serveur.";
-            }
+                const response = await fetch('/api/requests', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                if (response.ok) { msgDiv.className = "text-sm font-medium text-emerald-400 mt-2"; msgDiv.innerText = "Demande soumise !"; setTimeout(() => { toggleModal(); }, 1000); } 
+                else { msgDiv.className = "text-sm font-medium text-rose-400 mt-2"; msgDiv.innerText = "Erreur : " + await response.text(); }
+            } catch (err) { msgDiv.className = "text-sm font-medium text-rose-400 mt-2"; msgDiv.innerText = "Erreur serveur."; }
         });
+
+        document.getElementById('form-create-user').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const payload = {
+                name: document.getElementById('new-name').value.trim(),
+                email: document.getElementById('new-email').value.trim(),
+                role: document.getElementById('new-role').value,
+                password_temp: document.getElementById('new-password').value.trim()
+            };
+            const msgDiv = document.getElementById('create-user-msg');
+            msgDiv.classList.remove('hidden'); msgDiv.className = "text-sm font-medium text-slate-400 mt-2"; msgDiv.innerText = "Création...";
+            try {
+                const response = await fetch('/api/users', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                if (response.ok) { msgDiv.className = "text-sm font-medium text-emerald-400 mt-2"; msgDiv.innerText = "Utilisateur créé avec succès !"; setTimeout(() => { toggleCreateUserModal(); }, 1500); } 
+                else { msgDiv.className = "text-sm font-medium text-rose-400 mt-2"; msgDiv.innerText = await response.text(); }
+            } catch (error) { msgDiv.className = "text-sm font-medium text-rose-400 mt-2"; msgDiv.innerText = "Erreur réseau."; }
+        });
+
+        // Lancement
+        updateUI();
     </script>
 </body>
 </html>
