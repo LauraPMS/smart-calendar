@@ -6,9 +6,10 @@
     <title>Gestion des Astreintes SSI</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
-        // REDIRECTION IMMEDIATE SI NON CONNECTÉ
+        // REDIRECTION IMMÉDIATE SI NON CONNECTÉ
         const sessionName = localStorage.getItem('session_name');
         const sessionRole = localStorage.getItem('session_role');
+        const sessionEmail = localStorage.getItem('session_email');
         if (!sessionName || !sessionRole) { window.location.replace('/login.html'); }
     </script>
 </head>
@@ -19,12 +20,12 @@
         <div class="flex items-center gap-6">
             <nav class="flex space-x-1 bg-slate-900 p-1 rounded-lg border border-slate-800">
                 <button id="tab-calendar" onclick="switchTab('calendar')" class="px-4 py-1.5 text-sm rounded-md font-medium bg-indigo-600 text-white shadow transition">Vue Calendrier</button>
-                <button id="tab-requests" onclick="switchTab('requests')" class="px-4 py-1.5 text-sm rounded-md font-medium text-slate-400 hover:text-slate-200 transition relative">Demandes & Conflits</button>
+                <button id="tab-requests" onclick="switchTab('requests')" class="px-4 py-1.5 text-sm rounded-md font-medium text-slate-400 hover:text-slate-200 transition relative">Mes Demandes</button>
             </nav>
             <div class="flex items-center gap-4 border-l border-slate-800 pl-6">
                 <span class="text-sm text-slate-400">Session : <strong id="display-session-name" class="text-slate-200">...</strong></span>
                 <a href="#" onclick="logout(); return false;" class="text-sm text-rose-400 hover:text-rose-300 transition underline decoration-rose-400/30 underline-offset-4 mr-2">Déconnexion</a>
-                <button id="btn-create-account" onclick="toggleCreateUserModal()" class="rounded-md bg-slate-800 border border-slate-700 px-3 py-1.5 text-sm font-semibold text-slate-200 hover:bg-slate-700 transition">Créer un compte</button>
+                <button id="btn-create-account" onclick="toggleCreateUserModal()" class="rounded-md bg-slate-800 border border-slate-700 px-3 py-1.5 text-sm font-semibold text-slate-200 hover:bg-slate-700 transition hidden">Créer un compte</button>
             </div>
         </div>
     </header>
@@ -55,22 +56,64 @@
                 <div class="py-3 text-indigo-300" id="header-sun">Dimanche</div>
             </div>
             <div class="flex-1 grid grid-cols-8 grid-rows-2">
+                <!-- Shift Jour -->
                 <div class="row-start-1 col-start-1 border-r border-b border-slate-800 bg-slate-900/30 px-4 flex flex-col justify-center"><span class="font-medium text-sm">Shift Jour</span><span class="text-xs text-slate-500">07h00 - 19h00</span></div>
-                <div class="row-start-1 col-start-2 border-r border-b border-slate-800 p-2 hover:bg-slate-800/40 cursor-pointer flex flex-col justify-end" onclick="openRequestModal(0, 'Jour')"><div id="cell-mon-Jour" class="text-xs font-semibold text-emerald-400 bg-emerald-500/10 p-1.5 rounded border border-emerald-500/20 shadow-sm hidden text-center truncate"></div></div>
-                <div class="row-start-1 col-start-3 border-r border-b border-slate-800 p-2 hover:bg-slate-800/40 cursor-pointer flex flex-col justify-end" onclick="openRequestModal(1, 'Jour')"><div id="cell-tue-Jour" class="text-xs font-semibold text-emerald-400 bg-emerald-500/10 p-1.5 rounded border border-emerald-500/20 shadow-sm hidden text-center truncate"></div></div>
-                <div class="row-start-1 col-start-4 border-r border-b border-slate-800 p-2 hover:bg-slate-800/40 cursor-pointer flex flex-col justify-end" onclick="openRequestModal(2, 'Jour')"><div id="cell-wed-Jour" class="text-xs font-semibold text-emerald-400 bg-emerald-500/10 p-1.5 rounded border border-emerald-500/20 shadow-sm hidden text-center truncate"></div></div>
-                <div class="row-start-1 col-start-5 border-r border-b border-slate-800 p-2 hover:bg-slate-800/40 cursor-pointer flex flex-col justify-end" onclick="openRequestModal(3, 'Jour')"><div id="cell-thu-Jour" class="text-xs font-semibold text-emerald-400 bg-emerald-500/10 p-1.5 rounded border border-emerald-500/20 shadow-sm hidden text-center truncate"></div></div>
-                <div class="row-start-1 col-start-6 border-r border-b border-slate-800 p-2 hover:bg-slate-800/40 cursor-pointer flex flex-col justify-end" onclick="openRequestModal(4, 'Jour')"><div id="cell-fri-Jour" class="text-xs font-semibold text-emerald-400 bg-emerald-500/10 p-1.5 rounded border border-emerald-500/20 shadow-sm hidden text-center truncate"></div></div>
-                <div class="row-start-1 row-span-2 col-start-7 border-r border-slate-800 bg-indigo-900/10 hover:bg-indigo-900/20 cursor-pointer flex flex-col justify-end p-2" onclick="openRequestModal(5, '24h')"><div id="cell-sat-24h" class="text-xs font-semibold text-emerald-400 bg-emerald-500/10 p-1.5 rounded border border-emerald-500/20 shadow-sm hidden text-center truncate"></div></div>
-                <div class="row-start-1 row-span-2 col-start-8 bg-indigo-900/10 hover:bg-indigo-900/20 cursor-pointer flex flex-col justify-end p-2" onclick="openRequestModal(6, '24h')"><div id="cell-sun-24h" class="text-xs font-semibold text-emerald-400 bg-emerald-500/10 p-1.5 rounded border border-emerald-500/20 shadow-sm hidden text-center truncate"></div></div>
+                
+                <div class="row-start-1 col-start-2 border-r border-b border-slate-800 p-1 hover:bg-slate-800/40 cursor-pointer flex items-center justify-center relative" onclick="openRequestModal(0, 'Jour')">
+                    <div id="cell-mon-Jour" class="absolute inset-1 flex flex-col justify-center items-center text-xs font-bold text-emerald-400 bg-emerald-500/20 rounded-lg border border-emerald-500/30 shadow-sm hidden text-center px-1 z-10"></div>
+                    <div id="pending-mon-Jour" class="absolute bottom-1 left-1 right-1 flex flex-col justify-center items-center text-[10px] font-semibold text-amber-400 bg-amber-500/10 rounded border border-amber-500/30 shadow-sm hidden text-center truncate px-1 py-0.5 z-20"></div>
+                </div>
+                <div class="row-start-1 col-start-3 border-r border-b border-slate-800 p-1 hover:bg-slate-800/40 cursor-pointer flex items-center justify-center relative" onclick="openRequestModal(1, 'Jour')">
+                    <div id="cell-tue-Jour" class="absolute inset-1 flex flex-col justify-center items-center text-xs font-bold text-emerald-400 bg-emerald-500/20 rounded-lg border border-emerald-500/30 shadow-sm hidden text-center px-1 z-10"></div>
+                    <div id="pending-tue-Jour" class="absolute bottom-1 left-1 right-1 flex flex-col justify-center items-center text-[10px] font-semibold text-amber-400 bg-amber-500/10 rounded border border-amber-500/30 shadow-sm hidden text-center truncate px-1 py-0.5 z-20"></div>
+                </div>
+                <div class="row-start-1 col-start-4 border-r border-b border-slate-800 p-1 hover:bg-slate-800/40 cursor-pointer flex items-center justify-center relative" onclick="openRequestModal(2, 'Jour')">
+                    <div id="cell-wed-Jour" class="absolute inset-1 flex flex-col justify-center items-center text-xs font-bold text-emerald-400 bg-emerald-500/20 rounded-lg border border-emerald-500/30 shadow-sm hidden text-center px-1 z-10"></div>
+                    <div id="pending-wed-Jour" class="absolute bottom-1 left-1 right-1 flex flex-col justify-center items-center text-[10px] font-semibold text-amber-400 bg-amber-500/10 rounded border border-amber-500/30 shadow-sm hidden text-center truncate px-1 py-0.5 z-20"></div>
+                </div>
+                <div class="row-start-1 col-start-5 border-r border-b border-slate-800 p-1 hover:bg-slate-800/40 cursor-pointer flex items-center justify-center relative" onclick="openRequestModal(3, 'Jour')">
+                    <div id="cell-thu-Jour" class="absolute inset-1 flex flex-col justify-center items-center text-xs font-bold text-emerald-400 bg-emerald-500/20 rounded-lg border border-emerald-500/30 shadow-sm hidden text-center px-1 z-10"></div>
+                    <div id="pending-thu-Jour" class="absolute bottom-1 left-1 right-1 flex flex-col justify-center items-center text-[10px] font-semibold text-amber-400 bg-amber-500/10 rounded border border-amber-500/30 shadow-sm hidden text-center truncate px-1 py-0.5 z-20"></div>
+                </div>
+                <div class="row-start-1 col-start-6 border-r border-b border-slate-800 p-1 hover:bg-slate-800/40 cursor-pointer flex items-center justify-center relative" onclick="openRequestModal(4, 'Jour')">
+                    <div id="cell-fri-Jour" class="absolute inset-1 flex flex-col justify-center items-center text-xs font-bold text-emerald-400 bg-emerald-500/20 rounded-lg border border-emerald-500/30 shadow-sm hidden text-center px-1 z-10"></div>
+                    <div id="pending-fri-Jour" class="absolute bottom-1 left-1 right-1 flex flex-col justify-center items-center text-[10px] font-semibold text-amber-400 bg-amber-500/10 rounded border border-amber-500/30 shadow-sm hidden text-center truncate px-1 py-0.5 z-20"></div>
+                </div>
+
+                <!-- Week-end 24h -->
+                <div class="row-start-1 row-span-2 col-start-7 border-r border-slate-800 bg-indigo-900/10 hover:bg-indigo-900/20 cursor-pointer flex items-center justify-center relative p-1" onclick="openRequestModal(5, '24h')">
+                    <div id="cell-sat-24h" class="absolute inset-1 flex flex-col justify-center items-center text-xs font-bold text-emerald-400 bg-emerald-500/20 rounded-lg border border-emerald-500/30 shadow-sm hidden text-center px-1 z-10"></div>
+                    <div id="pending-sat-24h" class="absolute bottom-1 left-1 right-1 flex flex-col justify-center items-center text-[10px] font-semibold text-amber-400 bg-amber-500/10 rounded border border-amber-500/30 shadow-sm hidden text-center truncate px-1 py-0.5 z-20"></div>
+                </div>
+                <div class="row-start-1 row-span-2 col-start-8 bg-indigo-900/10 hover:bg-indigo-900/20 cursor-pointer flex items-center justify-center relative p-1" onclick="openRequestModal(6, '24h')">
+                    <div id="cell-sun-24h" class="absolute inset-1 flex flex-col justify-center items-center text-xs font-bold text-emerald-400 bg-emerald-500/20 rounded-lg border border-emerald-500/30 shadow-sm hidden text-center px-1 z-10"></div>
+                    <div id="pending-sun-24h" class="absolute bottom-1 left-1 right-1 flex flex-col justify-center items-center text-[10px] font-semibold text-amber-400 bg-amber-500/10 rounded border border-amber-500/30 shadow-sm hidden text-center truncate px-1 py-0.5 z-20"></div>
+                </div>
+
+                <!-- Shift Nuit -->
                 <div class="row-start-2 col-start-1 border-r border-slate-800 bg-slate-900/30 px-4 flex flex-col justify-center"><span class="font-medium text-sm">Shift Nuit</span><span class="text-xs text-slate-500">19h00 - 07h00</span></div>
-                <div class="row-start-2 col-start-2 border-r border-slate-800 p-2 hover:bg-slate-800/40 cursor-pointer flex flex-col justify-end" onclick="openRequestModal(0, 'Nuit')"><div id="cell-mon-Nuit" class="text-xs font-semibold text-emerald-400 bg-emerald-500/10 p-1.5 rounded border border-emerald-500/20 shadow-sm hidden text-center truncate"></div></div>
-                <div class="row-start-2 col-start-3 border-r border-slate-800 p-2 hover:bg-slate-800/40 cursor-pointer flex flex-col justify-end" onclick="openRequestModal(1, 'Nuit')"><div id="cell-tue-Nuit" class="text-xs font-semibold text-emerald-400 bg-emerald-500/10 p-1.5 rounded border border-emerald-500/20 shadow-sm hidden text-center truncate"></div></div>
-                <div class="row-start-2 col-start-4 border-r border-b border-slate-800 p-2 hover:bg-slate-800/40 cursor-pointer flex flex-col justify-end" onclick="openRequestModal(2, 'Nuit')"><div id="cell-wed-Nuit" class="text-xs font-semibold text-emerald-400 bg-emerald-500/10 p-1.5 rounded border border-emerald-500/20 shadow-sm hidden text-center truncate"></div></div>
-                <div class="row-start-2 col-start-5 border-r border-b border-slate-800 p-2 hover:bg-slate-800/40 cursor-pointer flex flex-col justify-end" onclick="openRequestModal(3, 'Nuit')"><div id="cell-thu-Nuit" class="text-xs font-semibold text-emerald-400 bg-emerald-500/10 p-1.5 rounded border border-emerald-500/20 shadow-sm hidden text-center truncate"></div></div>
-                <div class="row-start-2 col-start-6 border-r border-b border-slate-800 p-2 hover:bg-slate-800/40 cursor-pointer flex flex-col justify-end" onclick="openRequestModal(4, 'Nuit')"><div id="cell-fri-Nuit" class="text-xs font-semibold text-emerald-400 bg-emerald-500/10 p-1.5 rounded border border-emerald-500/20 shadow-sm hidden text-center truncate"></div></div>
+                
+                <div class="row-start-2 col-start-2 border-r border-slate-800 p-1 hover:bg-slate-800/40 cursor-pointer flex items-center justify-center relative" onclick="openRequestModal(0, 'Nuit')">
+                    <div id="cell-mon-Nuit" class="absolute inset-1 flex flex-col justify-center items-center text-xs font-bold text-emerald-400 bg-emerald-500/20 rounded-lg border border-emerald-500/30 shadow-sm hidden text-center px-1 z-10"></div>
+                    <div id="pending-mon-Nuit" class="absolute bottom-1 left-1 right-1 flex flex-col justify-center items-center text-[10px] font-semibold text-amber-400 bg-amber-500/10 rounded border border-amber-500/30 shadow-sm hidden text-center truncate px-1 py-0.5 z-20"></div>
+                </div>
+                <div class="row-start-2 col-start-3 border-r border-slate-800 p-1 hover:bg-slate-800/40 cursor-pointer flex items-center justify-center relative" onclick="openRequestModal(1, 'Nuit')">
+                    <div id="cell-tue-Nuit" class="absolute inset-1 flex flex-col justify-center items-center text-xs font-bold text-emerald-400 bg-emerald-500/20 rounded-lg border border-emerald-500/30 shadow-sm hidden text-center px-1 z-10"></div>
+                    <div id="pending-tue-Nuit" class="absolute bottom-1 left-1 right-1 flex flex-col justify-center items-center text-[10px] font-semibold text-amber-400 bg-amber-500/10 rounded border border-amber-500/30 shadow-sm hidden text-center truncate px-1 py-0.5 z-20"></div>
+                </div>
+                <div class="row-start-2 col-start-4 border-r border-b border-slate-800 p-1 hover:bg-slate-800/40 cursor-pointer flex items-center justify-center relative" onclick="openRequestModal(2, 'Nuit')">
+                    <div id="cell-wed-Nuit" class="absolute inset-1 flex flex-col justify-center items-center text-xs font-bold text-emerald-400 bg-emerald-500/20 rounded-lg border border-emerald-500/30 shadow-sm hidden text-center px-1 z-10"></div>
+                    <div id="pending-wed-Nuit" class="absolute bottom-1 left-1 right-1 flex flex-col justify-center items-center text-[10px] font-semibold text-amber-400 bg-amber-500/10 rounded border border-amber-500/30 shadow-sm hidden text-center truncate px-1 py-0.5 z-20"></div>
+                </div>
+                <div class="row-start-2 col-start-5 border-r border-b border-slate-800 p-1 hover:bg-slate-800/40 cursor-pointer flex items-center justify-center relative" onclick="openRequestModal(3, 'Nuit')">
+                    <div id="cell-thu-Nuit" class="absolute inset-1 flex flex-col justify-center items-center text-xs font-bold text-emerald-400 bg-emerald-500/20 rounded-lg border border-emerald-500/30 shadow-sm hidden text-center px-1 z-10"></div>
+                    <div id="pending-thu-Nuit" class="absolute bottom-1 left-1 right-1 flex flex-col justify-center items-center text-[10px] font-semibold text-amber-400 bg-amber-500/10 rounded border border-amber-500/30 shadow-sm hidden text-center truncate px-1 py-0.5 z-20"></div>
+                </div>
+                <div class="row-start-2 col-start-6 border-r border-b border-slate-800 p-1 hover:bg-slate-800/40 cursor-pointer flex items-center justify-center relative" onclick="openRequestModal(4, 'Nuit')">
+                    <div id="cell-fri-Nuit" class="absolute inset-1 flex flex-col justify-center items-center text-xs font-bold text-emerald-400 bg-emerald-500/20 rounded-lg border border-emerald-500/30 shadow-sm hidden text-center px-1 z-10"></div>
+                    <div id="pending-fri-Nuit" class="absolute bottom-1 left-1 right-1 flex flex-col justify-center items-center text-[10px] font-semibold text-amber-400 bg-amber-500/10 rounded border border-amber-500/30 shadow-sm hidden text-center truncate px-1 py-0.5 z-20"></div>
+                </div>
             </div>
-        </div>
 
         <div id="calendar-view-month" class="hidden flex-1 bg-slate-950 rounded-xl border border-slate-800 overflow-hidden flex flex-col">
             <div class="grid grid-cols-7 border-b border-slate-800 bg-slate-900/50 text-center text-sm font-semibold text-slate-300">
@@ -84,8 +127,8 @@
     <main id="main-requests-view" class="hidden flex-1 flex-col p-6 overflow-y-auto">
         <div class="max-w-4xl mx-auto w-full space-y-6">
             <div class="border-b border-slate-800 pb-4">
-                <h2 class="text-xl font-bold tracking-tight text-slate-100">Arbitrage des créneaux</h2>
-                <p class="text-sm text-slate-400 mt-1">Validez les demandes ou résolvez les conflits d'horaires.</p>
+                <h2 id="requests-title" class="text-xl font-bold tracking-tight text-slate-100">Arbitrage des créneaux</h2>
+                <p id="requests-subtitle" class="text-sm text-slate-400 mt-1">Validez les demandes ou résolvez les conflits d'horaires.</p>
             </div>
             <div id="requests-container" class="bg-slate-950 border border-slate-800 rounded-xl p-4 flex items-center justify-center text-slate-400">
                 Aucune demande en attente.
@@ -94,35 +137,54 @@
     </main>
 
     <div id="pref-modal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-        <div class="bg-slate-900 border border-slate-800 rounded-xl max-w-md w-full p-6 shadow-xl">
-            <h3 class="text-lg font-bold text-slate-100 mb-4">Faire une demande de créneau</h3>
-            <form id="form-request" class="space-y-4">
-                <div>
-                    <label class="block text-sm font-medium text-slate-400 mb-1">Date souhaitée</label>
-                    <input type="date" id="req-date" required class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-slate-200 focus:outline-none focus:border-emerald-500">
+        <div class="bg-slate-900 border border-slate-800 rounded-xl max-w-md w-full p-6 shadow-xl relative">
+            
+            <div id="modal-tabs-header" class="hidden flex border-b border-slate-800 mb-4">
+                <button type="button" id="modal-tab-create" onclick="switchModalTab('create')" class="flex-1 py-2 text-sm font-semibold border-b-2 border-emerald-500 text-emerald-400">Faire une demande</button>
+                <button type="button" id="modal-tab-manage" onclick="switchModalTab('manage')" class="flex-1 py-2 text-sm font-semibold border-b-2 border-transparent text-slate-400 hover:text-slate-200">Gérer les demandes (0)</button>
+            </div>
+
+            <div id="modal-content-create">
+                <h3 id="modal-create-title" class="text-lg font-bold text-slate-100 mb-4">Faire une demande de créneau</h3>
+                <form id="form-request" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-400 mb-1">Date souhaitée</label>
+                        <input type="date" id="req-date" required class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-slate-200 focus:outline-none focus:border-emerald-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-400 mb-1">Type de Shift</label>
+                        <select id="req-type" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-slate-200 focus:outline-none focus:border-emerald-500">
+                            <option value="Jour">Shift Jour (07h00 - 19h00)</option>
+                            <option value="Nuit">Shift Nuit (19h00 - 07h00)</option>
+                            <option value="24h">Shift 24h (Week-end)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-400 mb-1">Niveau de préférence</label>
+                        <select id="req-pref" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-slate-200 focus:outline-none focus:border-emerald-500">
+                            <option value="1">1 : Dispo à 100% (Je veux ce shift)</option>
+                            <option value="2">2 : Flexible (Je peux laisser ma place)</option>
+                            <option value="3">3 : Indisponible (Absolument pas dispo)</option>
+                        </select>
+                    </div>
+                    <div id="req-msg" class="text-sm font-medium hidden"></div>
+                    <div class="flex justify-end gap-3 pt-4 border-t border-slate-800">
+                        <button type="button" onclick="toggleModal()" class="px-4 py-2 text-sm font-medium text-slate-400 hover:text-slate-200">Annuler</button>
+                        <button type="submit" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 rounded-lg text-sm font-semibold text-white">Soumettre la demande</button>
+                    </div>
+                </form>
+            </div>
+
+            <div id="modal-content-manage" class="hidden space-y-4">
+                <h3 class="text-lg font-bold text-slate-100 mb-2">Arbitrage pour ce créneau</h3>
+                <p class="text-xs text-slate-400 mb-3">Sélectionnez le collaborateur à affecter à ce poste.</p>
+                <div id="modal-requests-list" class="space-y-3 max-h-[300px] overflow-y-auto pr-1">
+                    </div>
+                <div class="flex justify-end pt-4 border-t border-slate-800">
+                    <button type="button" onclick="toggleModal()" class="px-4 py-2 text-sm font-medium text-slate-400 hover:text-slate-200">Fermer</button>
                 </div>
-                <div>
-                    <label class="block text-sm font-medium text-slate-400 mb-1">Type de Shift</label>
-                    <select id="req-type" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-slate-200 focus:outline-none focus:border-emerald-500">
-                        <option value="Jour">Shift Jour (07h00 - 19h00)</option>
-                        <option value="Nuit">Shift Nuit (19h00 - 07h00)</option>
-                        <option value="24h">Shift 24h (Week-end)</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-slate-400 mb-1">Niveau de préférence</label>
-                    <select id="req-pref" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-slate-200 focus:outline-none focus:border-emerald-500">
-                        <option value="1">1 : Dispo à 100% (Je veux ce shift)</option>
-                        <option value="2">2 : Flexible (Je peux laisser ma place)</option>
-                        <option value="3">3 : Indisponible (Absolument pas dispo)</option>
-                    </select>
-                </div>
-                <div id="req-msg" class="text-sm font-medium hidden"></div>
-                <div class="flex justify-end gap-3 pt-4 border-t border-slate-800">
-                    <button type="button" onclick="toggleModal()" class="px-4 py-2 text-sm font-medium text-slate-400 hover:text-slate-200">Annuler</button>
-                    <button type="submit" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 rounded-lg text-sm font-semibold text-white">Soumettre la demande</button>
-                </div>
-            </form>
+            </div>
+
         </div>
     </div>
 
@@ -151,19 +213,32 @@
     </div>
 
     <script>
-        // 1. Initialisation Interface
-        if (sessionName && sessionRole) {
-            document.getElementById('display-session-name').innerText = sessionName;
-            if (sessionRole !== 'Admin') {
-                const btnCreate = document.getElementById('btn-create-account');
-                const tabReq = document.getElementById('tab-requests');
-                if(btnCreate) btnCreate.classList.add('hidden');
-                if(tabReq) tabReq.classList.add('hidden');
-            }
+        // --- 1. SESSION ET ROLES ---
+        document.getElementById('display-session-name').innerText = sessionName;
+        
+        const tabReq = document.getElementById('tab-requests');
+        const reqTitle = document.getElementById('requests-title');
+        const reqSubtitle = document.getElementById('requests-subtitle');
+        const btnCreate = document.getElementById('btn-create-account');
+
+        if (sessionRole === 'Admin') {
+            tabReq.innerText = "Arbitrage & Conflits";
+            reqTitle.innerText = "Arbitrage des créneaux";
+            reqSubtitle.innerText = "Validez les demandes ou résolvez les conflits d'horaires.";
+            if(btnCreate) btnCreate.classList.remove('hidden');
+        } else {
+            tabReq.innerText = "Mes Demandes";
+            reqTitle.innerText = "Mes Demandes de Shifts";
+            reqSubtitle.innerText = "Suivez l'état d'approbation de vos vœux d'astreintes.";
+            if(btnCreate) btnCreate.classList.add('hidden');
         }
+
         function logout() { localStorage.clear(); window.location.href = '/login.html'; }
 
-        // 2. Gestion Temporelle
+        // Cache global des demandes pour éviter les fetchs répétés
+        window.allRequests = [];
+
+        // --- 2. LOGIQUE CALENDRIER ---
         let currentDate = new Date();
         let currentCalendarView = 'week';
 
@@ -259,7 +334,7 @@
             updateUI();
         }
 
-        // 3. Logique de Modales
+        // --- 3. GESTION DES MODALES ET ONGLETS INTERNES ---
         function openRequestModal(dayIndex, shiftType) {
             const curr = new Date(currentDate);
             const day = curr.getDay();
@@ -268,13 +343,106 @@
             const y = targetDate.getFullYear();
             const m = String(targetDate.getMonth() + 1).padStart(2, '0');
             const d = String(targetDate.getDate()).padStart(2, '0');
+            const formattedDate = `${y}-${m}-${d}`;
 
-            document.getElementById('req-date').value = `${y}-${m}-${d}`;
+            // Remplir la date par défaut
+            document.getElementById('req-date').value = formattedDate;
             const typeSelect = document.getElementById('req-type');
+            
             if (shiftType === '24h') typeSelect.innerHTML = `<option value="24h">Shift 24h (Week-end)</option>`;
             else typeSelect.innerHTML = `<option value="Jour">Shift Jour (07h00 - 19h00)</option><option value="Nuit">Shift Nuit (19h00 - 07h00)</option>`;
             typeSelect.value = shiftType;
+
+            // Masquer les messages d'erreurs/succès précédents
+            document.getElementById('req-msg').classList.add('hidden');
+
+            // --- FILTRAGE ET LOGIQUE DOUBLE ONGLET ADMIN ---
+            const slotRequests = window.allRequests.filter(r => r.date === formattedDate && r.shift_type === shiftType);
+            const tabsHeader = document.getElementById('modal-tabs-header');
+            const tabManageBtn = document.getElementById('modal-tab-manage');
+            const createTitle = document.getElementById('modal-create-title');
+
+            if (sessionRole === 'Admin' && slotRequests.length > 0) {
+                // S'il y a des demandes pour ce shift et que l'utilisateur est admin
+                tabsHeader.classList.remove('hidden');
+                createTitle.classList.add('hidden'); // On utilise les onglets à la place
+                tabManageBtn.innerHTML = `Gérer les demandes (${slotRequests.length})`;
+                
+                // Remplir la liste d'arbitrage
+                renderSlotRequestsList(slotRequests);
+                switchModalTab('manage'); // Par défaut, aller sur l'arbitrage
+            } else {
+                // Utilisateur classique ou aucune demande existante
+                tabsHeader.classList.add('hidden');
+                createTitle.classList.remove('hidden');
+                switchModalTab('create');
+            }
+
             document.getElementById('pref-modal').classList.remove('hidden');
+        }
+
+        function renderSlotRequestsList(requests) {
+            const listContainer = document.getElementById('modal-requests-list');
+            listContainer.innerHTML = requests.map(req => `
+                <div class="bg-slate-950 border border-slate-800 p-3 rounded-lg flex items-center justify-between shadow-sm">
+                    <div class="min-w-0 flex-1 pr-3">
+                        <div class="text-xs font-semibold text-slate-200 truncate">${req.user_email}</div>
+                        <div class="text-[10px] text-slate-400 mt-1">Préférence : <span class="text-indigo-400 font-bold">${req.preference}</span> | Statut : <span class="text-amber-500 font-medium">${req.status}</span></div>
+                    </div>
+                    <div class="flex gap-1.5">
+                        <button onclick="updateSlotRequestStatus(${req.request_id}, 'Validée', '${req.date}', '${req.shift_type}')" class="p-1.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 rounded-lg border border-emerald-500/20 transition" title="Valider">
+                            <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                        </button>
+                        <button onclick="updateSlotRequestStatus(${req.request_id}, 'Refusée', '${req.date}', '${req.shift_type}')" class="p-1.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 rounded-lg border border-rose-500/20 transition" title="Refuser">
+                            <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function switchModalTab(tab) {
+            const btnCreate = document.getElementById('modal-tab-create');
+            const btnManage = document.getElementById('modal-tab-manage');
+            const contentCreate = document.getElementById('modal-content-create');
+            const contentManage = document.getElementById('modal-content-manage');
+
+            if (tab === 'create') {
+                btnCreate.className = "flex-1 py-2 text-sm font-semibold border-b-2 border-emerald-500 text-emerald-400";
+                btnManage.className = "flex-1 py-2 text-sm font-semibold border-b-2 border-transparent text-slate-400 hover:text-slate-200";
+                contentCreate.classList.remove('hidden');
+                contentManage.classList.add('hidden');
+            } else {
+                btnManage.className = "flex-1 py-2 text-sm font-semibold border-b-2 border-emerald-500 text-emerald-400";
+                btnCreate.className = "flex-1 py-2 text-sm font-semibold border-b-2 border-transparent text-slate-400 hover:text-slate-200";
+                contentCreate.classList.add('hidden');
+                contentManage.classList.remove('hidden');
+            }
+        }
+
+        async function updateSlotRequestStatus(requestId, newStatus, date, shiftType) {
+            try {
+                const response = await fetch('/api/requests/update', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ request_id: requestId, new_status: newStatus })
+                });
+
+                if (response.ok) {
+                    // Mettre à jour l'affichage général
+                    await loadCalendarShifts(); 
+                    loadRequests(); // Rafraîchir l'onglet d'arrière-plan
+
+                    // Mettre à jour les requêtes de cette cellule
+                    const slotRequests = window.allRequests.filter(r => r.date === date && r.shift_type === shiftType);
+                    if (slotRequests.length > 0) {
+                        document.getElementById('modal-tab-manage').innerHTML = `Gérer les demandes (${slotRequests.length})`;
+                        renderSlotRequestsList(slotRequests);
+                    } else {
+                        toggleModal(); // Ferme si plus aucune demande
+                    }
+                }
+            } catch (err) { console.error("Erreur arbitrage modale :", err); }
         }
 
         document.getElementById('req-date').addEventListener('change', (e) => {
@@ -298,11 +466,20 @@
             if (modal.classList.contains('hidden')) { document.getElementById('form-create-user').reset(); document.getElementById('create-user-msg').classList.add('hidden'); }
         }
 
-        // 4. API : Chargement des données
+        // --- 4. FLUX DE DONNÉES ET INTEGRATION BACKEND ---
         async function loadCalendarShifts() {
             const daysIds = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
             const types = ['Jour', 'Nuit', '24h'];
-            daysIds.forEach(d => { types.forEach(t => { const cell = document.getElementById(`cell-${d}-${t}`); if (cell) { cell.innerText = ''; cell.classList.add('hidden'); } }); });
+            
+            // On nettoie toutes les cases et les badges d'attente
+            daysIds.forEach(d => { 
+                types.forEach(t => { 
+                    const cell = document.getElementById(`cell-${d}-${t}`); 
+                    const pending = document.getElementById(`pending-${d}-${t}`);
+                    if (cell) { cell.innerText = ''; cell.classList.add('hidden'); } 
+                    if (pending) { pending.innerText = ''; pending.classList.add('hidden'); }
+                }); 
+            });
 
             const curr = new Date(currentDate);
             const day = curr.getDay();
@@ -318,10 +495,35 @@
                 const response = await fetch('/api/requests');
                 if (response.ok) {
                     const requests = await response.json();
+                    window.allRequests = requests; 
+                    
                     requests.forEach(req => {
-                        if (req.status === 'Validée' && weekDatesMap[req.date]) {
-                            const badge = document.getElementById(`cell-${weekDatesMap[req.date]}-${req.shift_type}`);
-                            if (badge) { badge.innerText = "🛡️ " + req.user_email.split('@')[0]; badge.classList.remove('hidden'); }
+                        if (weekDatesMap[req.date]) {
+                            const dayId = weekDatesMap[req.date];
+                            
+                            if (req.status === 'Validée') {
+                                // Affichage du shift validé (prend toute la case)
+                                const badge = document.getElementById(`cell-${dayId}-${req.shift_type}`);
+                                if (badge) { 
+                                    badge.innerText = "🛡️ " + req.user_email.split('@')[0]; 
+                                    badge.classList.remove('hidden'); 
+                                }
+                            } else if (req.status === 'En attente') {
+                                // Affichage de la petite ligne orange en bas
+                                // Visible si c'est MA demande, ou si je suis Admin
+                                if (sessionRole === 'Admin' || req.user_email === sessionEmail) {
+                                    const pendingBadge = document.getElementById(`pending-${dayId}-${req.shift_type}`);
+                                    if (pendingBadge) {
+                                        if (pendingBadge.classList.contains('hidden')) {
+                                            pendingBadge.innerText = "⏳ " + req.user_email.split('@')[0];
+                                            pendingBadge.classList.remove('hidden');
+                                        } else {
+                                            // S'il y a déjà une demande en attente affichée (ex: 2 personnes veulent le même shift)
+                                            pendingBadge.innerText = "⏳ Multiples";
+                                        }
+                                    }
+                                }
+                            }
                         }
                     });
                 }
@@ -329,27 +531,42 @@
         }
 
         async function loadRequests() {
-            if (localStorage.getItem('session_role') !== 'Admin') return;
             const container = document.getElementById('requests-container');
             if (!container) return;
 
             try {
                 const response = await fetch('/api/requests');
                 if (response.ok) {
-                    const requests = await response.json();
+                    let requests = await response.json();
+                    window.allRequests = requests;
+
+                    // --- FILTRAGE PAR RÔLE ---
+                    if (sessionRole !== 'Admin') {
+                        // Un utilisateur classique ne voit que ses propres demandes
+                        requests = requests.filter(req => req.user_email === sessionEmail);
+                    }
+
                     if (requests.length === 0) {
-                        container.innerHTML = "Aucune demande en attente.";
+                        container.innerHTML = "Aucune demande enregistrée.";
                         container.className = "bg-slate-950 border border-slate-800 rounded-xl p-4 flex items-center justify-center text-slate-400";
                         return;
                     }
                     container.className = "space-y-3";
                     container.innerHTML = requests.map(req => `
                         <div class="bg-slate-950 border border-slate-800 p-4 rounded-xl flex items-center justify-between shadow-sm transition hover:border-slate-700">
-                            <div><div class="text-sm font-semibold text-slate-200">${req.user_email}</div><div class="text-xs text-slate-400 mt-1">Date : <span class="text-indigo-400 font-medium">${req.date}</span> | Shift : <span class="text-indigo-400 font-medium">${req.shift_type}</span></div></div>
+                            <div>
+                                <div class="text-sm font-semibold text-slate-200">${req.user_email}</div>
+                                <div class="text-xs text-slate-400 mt-1">Date : <span class="text-indigo-400 font-medium">${req.date}</span> | Shift : <span class="text-indigo-400 font-medium">${req.shift_type}</span></div>
+                            </div>
                             <div class="flex items-center gap-4">
                                 <span class="px-2.5 py-1 text-xs font-semibold rounded-full ${req.preference === 1 ? 'text-emerald-400 bg-emerald-500/10 border border-emerald-500/20' : req.preference === 2 ? 'text-amber-400 bg-amber-500/10 border border-amber-500/20' : 'text-rose-400 bg-rose-500/10 border border-rose-500/20'}">Pref : ${req.preference}</span>
                                 <span class="text-xs font-medium px-2.5 py-1 rounded-md border ${req.status === 'Validée' ? 'text-emerald-400 bg-emerald-400/10 border-emerald-400/20' : req.status === 'Refusée' ? 'text-rose-400 bg-rose-400/10 border-rose-400/20' : 'text-amber-500 bg-amber-500/10 border-amber-500/20'}">${req.status}</span>
-                                ${req.status === 'En attente' ? `<div class="flex gap-2 ml-2 border-l border-slate-800 pl-4"><button onclick="updateStatus(${req.request_id}, 'Validée')" class="p-1.5 text-emerald-500 hover:bg-emerald-500/20 rounded-lg"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg></button><button onclick="updateStatus(${req.request_id}, 'Refusée')" class="p-1.5 text-rose-500 hover:bg-rose-500/20 rounded-lg"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button></div>` : ''}
+                                
+                                ${sessionRole === 'Admin' && req.status === 'En attente' ? `
+                                <div class="flex gap-2 ml-2 border-l border-slate-800 pl-4">
+                                    <button onclick="updateStatus(${req.request_id}, 'Validée')" class="p-1.5 text-emerald-500 hover:bg-emerald-500/20 rounded-lg transition"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg></button>
+                                    <button onclick="updateStatus(${req.request_id}, 'Refusée')" class="p-1.5 text-rose-500 hover:bg-rose-500/20 rounded-lg transition"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
+                                </div>` : ''}
                             </div>
                         </div>
                     `).join('');
@@ -360,15 +577,18 @@
         async function updateStatus(requestId, newStatus) {
             try {
                 const response = await fetch('/api/requests/update', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ request_id: requestId, new_status: newStatus }) });
-                if (response.ok) loadRequests();
+                if (response.ok) {
+                    loadRequests();
+                    loadCalendarShifts();
+                }
             } catch (error) { console.error("Erreur réseau :", error); }
         }
 
-        // 5. API : Créations
+        // 5. Soumission Demandes & Inscriptions
         document.getElementById('form-request').addEventListener('submit', async (e) => {
             e.preventDefault();
             const payload = {
-                user_email: localStorage.getItem('session_email') || "inconnu@ssi.fr",
+                user_email: sessionEmail || "inconnu@ssi.fr",
                 date: document.getElementById('req-date').value,
                 shift_type: document.getElementById('req-type').value,
                 preference: parseInt(document.getElementById('req-pref').value)
@@ -377,7 +597,12 @@
             msgDiv.classList.remove('hidden'); msgDiv.className = "text-sm font-medium text-slate-400 mt-2"; msgDiv.innerText = "Transmission...";
             try {
                 const response = await fetch('/api/requests', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-                if (response.ok) { msgDiv.className = "text-sm font-medium text-emerald-400 mt-2"; msgDiv.innerText = "Demande soumise !"; setTimeout(() => { toggleModal(); }, 1000); } 
+                if (response.ok) { 
+                    msgDiv.className = "text-sm font-medium text-emerald-400 mt-2"; 
+                    msgDiv.innerText = "Demande soumise !"; 
+                    await loadCalendarShifts();
+                    setTimeout(() => { toggleModal(); }, 1000); 
+                } 
                 else { msgDiv.className = "text-sm font-medium text-rose-400 mt-2"; msgDiv.innerText = "Erreur : " + await response.text(); }
             } catch (err) { msgDiv.className = "text-sm font-medium text-rose-400 mt-2"; msgDiv.innerText = "Erreur serveur."; }
         });
@@ -399,7 +624,7 @@
             } catch (error) { msgDiv.className = "text-sm font-medium text-rose-400 mt-2"; msgDiv.innerText = "Erreur réseau."; }
         });
 
-        // Lancement
+        // Lancement Initial
         updateUI();
     </script>
 </body>
