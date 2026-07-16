@@ -11,12 +11,11 @@
     <div class="w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-2xl">
         <div class="text-center mb-8">
             <h1 class="text-2xl font-bold tracking-tight text-indigo-400 mb-1">Astreintes SSI</h1>
-            <p class="text-sm text-slate-400">Connectez-vous pour gérer vos shifts</p>
         </div>
 
         <form id="login-form" class="space-y-6">
             <div>
-                <label for="email" class="block text-sm font-medium text-slate-300 mb-2">Adresse Email</label>
+                <label for="email" class="block text-sm font-medium text-slate-300 mb-2">Email</label>
                 <input type="email" id="email" required class="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-2.5 text-slate-200 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition" placeholder="prenom.nom@exemple.com">
             </div>
 
@@ -26,7 +25,7 @@
             </div>
 
             <button type="submit" id="btn-submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-2.5 rounded-lg shadow-sm transition mt-4 disabled:opacity-50 disabled:cursor-not-allowed">
-                Se connecter
+                Connexion
             </button>
             
             <div id="login-msg" class="text-sm font-medium text-center hidden mt-4"></div>
@@ -42,7 +41,6 @@
             const msgDiv = document.getElementById('login-msg');
             const submitBtn = document.getElementById('btn-submit');
             
-            // Protection anti double-clic
             submitBtn.disabled = true;
             submitBtn.innerText = "Connexion...";
             

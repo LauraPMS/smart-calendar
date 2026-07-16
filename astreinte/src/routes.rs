@@ -15,27 +15,21 @@ pub async fn create_user(
     State(pool): State<SqlitePool>,
     Json(payload): Json<CreateUserPayload>,
 ) -> impl IntoResponse {
+    println!("\n--- [DEBUG] TENTATIVE DE CREATION DE COMPTE ---");
+    println!("1. Payload reçu depuis le front : {:?}", payload);
     
-    // 1. VÉRIFICATION : L'email existe-t-il déjà ?
-    let existing_user = sqlx::query!("SELECT user_id FROM users WHERE email = ?", payload.email)
-        .fetch_optional(&pool)
-        .await;
-
-    if let Ok(Some(_)) = existing_user {
-        return (StatusCode::CONFLICT, "Cet email est déjà enregistré.".to_string()).into_response();
-    }
-
-    // 2. Création classique
     let hashed_password = match hash(&payload.password_temp, DEFAULT_COST) {
         Ok(h) => h,
-        Err(_) => return (StatusCode::INTERNAL_SERVER_ERROR, "Erreur de chiffrement du mot de passe".to_string()).into_response(),
+        Err(e) => {
+            println!("❌ Erreur de hachage : {}", e);
+            return (StatusCode::INTERNAL_SERVER_ERROR, "Erreur serveur").into_response();
+        }
     };
 
+    println!("2. Hachage réussi, tentative d'insertion SQLite...");
+
     let insert_result = sqlx::query!(
-        r#"
-        INSERT INTO users (name, role, email, password_hash, must_change_password)
-        VALUES (?, ?, ?, ?, 1)
-        "#,
+        "INSERT INTO users (name, role, email, password_hash, must_change_password) VALUES (?, ?, ?, ?, 1)",
         payload.name,
         payload.role,
         payload.email,
@@ -45,8 +39,20 @@ pub async fn create_user(
     .await;
 
     match insert_result {
-        Ok(_) => (StatusCode::CREATED, "Utilisateur créé avec succès".to_string()).into_response(),
-        Err(e) => (StatusCode::BAD_REQUEST, format!("Erreur lors de la création : {}", e)).into_response()
+        Ok(result) => {
+            println!("✅ Résultat SQL : Ok");
+            println!("📊 Lignes réellement modifiées : {}", result.rows_affected());
+            
+            if result.rows_affected() == 0 {
+                println!("⚠️ ATTENTION BIZARRE : Requête acceptée mais 0 ligne ajoutée !");
+            }
+            
+            (StatusCode::CREATED, "Utilisateur créé avec succès".to_string()).into_response()
+        },
+        Err(e) => {
+            println!("❌ ERREUR FATALE SQL : {:?}", e);
+            (StatusCode::BAD_REQUEST, format!("Erreur DB : {}", e)).into_response()
+        }
     }
 }
 

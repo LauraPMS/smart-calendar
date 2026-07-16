@@ -15,8 +15,12 @@ async fn main() {
     dotenv().ok();
     let db_url = env::var("DATABASE_URL").expect("La variable DATABASE_URL est introuvable");
 
+    println!("\n========================================");
+    println!("🔍 URL DE LA BASE UTILISÉE : {}", db_url);
+    println!("========================================\n");
+
     let pool = db::init_pool(&db_url).await.expect("Échec de la connexion à la base de données");
-    println!("✅ Connecté à SQLite !");
+    println!("Connecté à SQLite !");
 
 let app = Router::new()
         .route("/api/users", post(routes::create_user))
@@ -31,7 +35,7 @@ let app = Router::new()
         .await
         .unwrap();
         
-    println!("🚀 Serveur démarré sur http://127.0.0.1:3000");
+    println!("Serveur démarré sur http://127.0.0.1:3000");
 
     axum::serve(listener, app).await.unwrap();
 }
