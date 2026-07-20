@@ -21,7 +21,7 @@ pub async fn create_user(
     let hashed_password = match hash(&payload.password_temp, DEFAULT_COST) {
         Ok(h) => h,
         Err(e) => {
-            println!("❌ Erreur de hachage : {}", e);
+            println!("Erreur de hachage : {}", e);
             return (StatusCode::INTERNAL_SERVER_ERROR, "Erreur serveur").into_response();
         }
     };
@@ -40,17 +40,17 @@ pub async fn create_user(
 
     match insert_result {
         Ok(result) => {
-            println!("✅ Résultat SQL : Ok");
-            println!("📊 Lignes réellement modifiées : {}", result.rows_affected());
+            println!("Résultat SQL : Ok");
+            println!("Lignes réellement modifiées : {}", result.rows_affected());
             
             if result.rows_affected() == 0 {
-                println!("⚠️ ATTENTION BIZARRE : Requête acceptée mais 0 ligne ajoutée !");
+                println!("ATTENTION BIZARRE : Requête acceptée mais 0 ligne ajoutée !");
             }
             
             (StatusCode::CREATED, "Utilisateur créé avec succès".to_string()).into_response()
         },
         Err(e) => {
-            println!("❌ ERREUR FATALE SQL : {:?}", e);
+            println!("ERREUR FATALE SQL : {:?}", e);
             (StatusCode::BAD_REQUEST, format!("Erreur DB : {}", e)).into_response()
         }
     }
@@ -99,8 +99,6 @@ pub async fn change_password(
     State(pool): State<SqlitePool>,
     Json(payload): Json<ChangePasswordPayload>,
 ) -> impl IntoResponse {
-    
-    // On récupère le hash, mais aussi le nom et le rôle pour la connexion auto
     let user = sqlx::query!(
         "SELECT name, role, password_hash FROM users WHERE email = ?",
         payload.email
@@ -129,7 +127,6 @@ pub async fn change_password(
 
             match update_result {
                 Ok(_) => {
-                    // CONNEXION AUTOMATIQUE : On renvoie les données JSON
                     let json_response = serde_json::json!({
                         "name": record.name,
                         "role": record.role
