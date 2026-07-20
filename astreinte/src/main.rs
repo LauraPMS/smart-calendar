@@ -16,7 +16,7 @@ async fn main() {
     let db_url = env::var("DATABASE_URL").expect("La variable DATABASE_URL est introuvable");
 
     println!("\n========================================");
-    println!("🔍 URL DE LA BASE UTILISÉE : {}", db_url);
+    println!("   URL DE LA BASE UTILISÉE : {}", db_url);
     println!("========================================\n");
 
     let pool = db::init_pool(&db_url).await.expect("Échec de la connexion à la base de données");
