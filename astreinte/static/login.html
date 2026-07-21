@@ -1,49 +1,47 @@
 <!DOCTYPE html>
-<html lang="fr" class="h-full bg-slate-950 text-slate-100">
+<html lang="fr" class="h-full bg-slate-950">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Connexion - Astreintes SSI</title>
+    <title>Connexion - Astreintes DSI</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="h-full flex items-center justify-center font-sans px-4">
-
-    <div class="w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-2xl">
-        <div class="text-center mb-8">
-            <h1 class="text-2xl font-bold tracking-tight text-indigo-400 mb-1">Astreintes SSI</h1>
+<body class="h-full flex items-center justify-center font-sans">
+    <div class="w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl shadow-xl p-8">
+        <div class="mb-8 text-center">
+            <h2 class="text-2xl font-bold text-slate-100">Astreintes DSI</h2>
+            <p class="text-sm text-slate-400 mt-2">Connectez-vous à votre espace</p>
         </div>
 
-        <form id="login-form" class="space-y-6">
+        <form id="form-login" class="space-y-5">
             <div>
-                <label for="email" class="block text-sm font-medium text-slate-300 mb-2">Email</label>
-                <input type="email" id="email" required class="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-2.5 text-slate-200 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition" placeholder="prenom.nom@exemple.com">
+                <label class="block text-sm font-medium text-slate-400 mb-1">Email professionnel</label>
+                <input type="email" id="email" required class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2.5 text-slate-200 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-slate-400 mb-1">Mot de passe</label>
+                <input type="password" id="password" required class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2.5 text-slate-200 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition">
             </div>
 
-            <div>
-                <label for="password" class="block text-sm font-medium text-slate-300 mb-2">Mot de passe</label>
-                <input type="password" id="password" required class="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-2.5 text-slate-200 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition" placeholder="••••••••">
-            </div>
+            <div id="login-msg" class="text-sm font-medium hidden text-center mt-4"></div>
 
-            <button type="submit" id="btn-submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-2.5 rounded-lg shadow-sm transition mt-4 disabled:opacity-50 disabled:cursor-not-allowed">
-                Connexion
+            <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-2.5 rounded-lg transition shadow-md shadow-indigo-500/20 mt-6">
+                Se connecter
             </button>
-            
-            <div id="login-msg" class="text-sm font-medium text-center hidden mt-4"></div>
         </form>
     </div>
 
     <script>
-        document.getElementById('login-form').addEventListener('submit', async (e) => {
+        document.getElementById('form-login').addEventListener('submit', async (e) => {
             e.preventDefault();
-            
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value.trim();
             const msgDiv = document.getElementById('login-msg');
-            const submitBtn = document.getElementById('btn-submit');
             
-            submitBtn.disabled = true;
-            submitBtn.innerText = "Connexion...";
-            
+            msgDiv.classList.remove('hidden');
+            msgDiv.className = "text-sm font-medium text-slate-400 text-center mt-4";
+            msgDiv.innerText = "Authentification...";
+
             try {
                 const response = await fetch('/api/login', {
                     method: 'POST',
@@ -51,35 +49,43 @@
                     body: JSON.stringify({ email, password })
                 });
 
-                msgDiv.classList.remove('hidden');
-
                 if (response.ok) {
-                    const data = await response.json(); 
+                    const data = await response.json();
                     
-                    if (data.status === "REQUIRES_PASSWORD_CHANGE") {
+                    if (data.must_change_password) {
                         localStorage.setItem('temp_email', email);
                         localStorage.setItem('temp_password', password);
                         window.location.href = '/change-password.html';
-                    } else {
-                        localStorage.setItem('session_name', data.name);
-                        localStorage.setItem('session_role', data.role);
-                        localStorage.setItem('session_email', email);
-                        window.location.href = '/index.html';
+                        return;
                     }
+
+                    // Stockage des nouvelles données de session (dont le tag et le service)
+                    localStorage.setItem('session_name', data.name);
+                    localStorage.setItem('session_role', data.role);
+                    localStorage.setItem('session_email', data.email);
+                    localStorage.setItem('session_tag', data.user_tag);
+                    localStorage.setItem('session_userId', data.user_id)
+                    if (data.service_id) {
+                        localStorage.setItem('session_service', data.service_id);
+                    }
+
+                    msgDiv.className = "text-sm font-medium text-emerald-400 text-center mt-4";
+                    msgDiv.innerText = "Connexion réussie !";
+                    
+                    // ROUTAGE INTELLIGENT
+                    setTimeout(() => {
+                        if (data.role === 'Admin') window.location.replace('/admin.html');
+                        else if (data.role === 'Manager') window.location.replace('/manager.html');
+                        else window.location.replace('/user.html');
+                    }, 500);
+
                 } else {
-                    const errorText = await response.text();
                     msgDiv.className = "text-sm font-medium text-rose-400 text-center mt-4";
-                    msgDiv.innerText = errorText;
-                    submitBtn.disabled = false;
-                    submitBtn.innerText = "Se connecter";
+                    msgDiv.innerText = "Identifiants incorrects";
                 }
             } catch (error) {
-                console.error("Erreur réseau :", error);
-                msgDiv.classList.remove('hidden');
                 msgDiv.className = "text-sm font-medium text-rose-400 text-center mt-4";
-                msgDiv.innerText = "Impossible de joindre le serveur.";
-                submitBtn.disabled = false;
-                submitBtn.innerText = "Se connecter";
+                msgDiv.innerText = "Erreur de connexion au serveur";
             }
         });
     </script>
