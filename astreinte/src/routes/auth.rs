@@ -5,24 +5,36 @@ use sqlx::SqlitePool;
 
 use crate::models::{LoginPayload, LoginResponse, ChangePasswordPayload};
 
-// Fonction helper pour générer un tag unique court (ex: LPM-A4)
 pub fn generate_user_tag(name: &str) -> String {
-    // On extrait le prénom (le premier mot)
     let first_name = name.split_whitespace().next().unwrap_or("X");
     
-    // On additionne la valeur ASCII des lettres pour créer une empreinte unique
-    let mut hash: usize = 0;
+    // Création d'une empreinte unique avec un multiplicateur pour bien disperser les prénoms proches
+    let mut hash: u32 = 0;
     for (i, c) in first_name.chars().enumerate() {
-        hash = hash.wrapping_add((c as usize).wrapping_mul(i + 1));
+        hash = hash.wrapping_add((c as u32).wrapping_mul((i as u32) + 1) * 37);
     }
     
-    // Application du "plancher" (offset de 127) pour éviter les couleurs sombres.
-    // La valeur sera toujours comprise entre 127 et 255.
-    let r = (hash % 128) + 127;
-    let g = ((hash / 3) % 128) + 127;
-    let b = ((hash / 7) % 128) + 127;
+    // Modèle HSL : Teinte, Saturation (75%), Luminosité (55%)
+    // On force le type f32 pour que la méthode .abs() fonctionne sans ambiguïté
+    let h: f32 = (hash % 360) as f32;
+    let s: f32 = 0.75; 
+    let l: f32 = 0.55; 
 
-    // Retourne le code hexadécimal (ex: #A3C5F1)
+    let c: f32 = (1.0_f32 - (2.0_f32 * l - 1.0_f32).abs()) * s;
+    let x: f32 = c * (1.0_f32 - ((h / 60.0_f32) % 2.0_f32 - 1.0_f32).abs());
+    let m: f32 = l - c / 2.0_f32;
+
+    let (r1, g1, b1) = if h < 60.0 { (c, x, 0.0) }
+    else if h < 120.0 { (x, c, 0.0) }
+    else if h < 180.0 { (0.0, c, x) }
+    else if h < 240.0 { (0.0, x, c) }
+    else if h < 300.0 { (x, 0.0, c) }
+    else { (c, 0.0, x) };
+
+    let r = ((r1 + m) * 255.0).round() as u8;
+    let g = ((g1 + m) * 255.0).round() as u8;
+    let b = ((b1 + m) * 255.0).round() as u8;
+
     format!("#{:02X}{:02X}{:02X}", r, g, b)
 }
 

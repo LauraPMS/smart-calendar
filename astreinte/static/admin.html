@@ -156,34 +156,73 @@
         });
 
         // --- CREATION UTILISATEUR ---
+        // --- CREATION UTILISATEUR ---
         document.getElementById('form-create-user').addEventListener('submit', async (e) => {
             e.preventDefault();
             const serviceVal = document.getElementById('user-service').value;
+            const roleVal = document.getElementById('user-role').value;
+            const msg = document.getElementById('msg-user');
+            
+            // SÉCURITÉ : On bloque si User ou Manager n'ont pas de service
+            if (roleVal !== 'Admin' && !serviceVal) {
+                msg.classList.remove('hidden');
+                msg.className = "text-sm font-medium text-amber-400 mt-2 block"; 
+                msg.innerText = "Action refusée : Un service doit obligatoirement être sélectionné.";
+                return;
+            }
             
             const payload = {
                 name: document.getElementById('user-name').value.trim(),
                 email: document.getElementById('user-email').value.trim(),
-                role: document.getElementById('user-role').value,
-                service_id: serviceVal ? parseInt(serviceVal) : null,
+                role: roleVal,
+                service_id: roleVal === 'Admin' ? null : parseInt(serviceVal), // Force le NULL si Admin
                 password_temp: document.getElementById('user-password').value.trim()
             };
             
-            const msg = document.getElementById('msg-user');
-            msg.className = "text-sm font-medium text-slate-400 mt-2 block"; msg.innerText = "Génération du compte et du TAG...";
+            msg.classList.remove('hidden');
+            msg.className = "text-sm font-medium text-slate-400 mt-2 block"; 
+            msg.innerText = "Génération du compte et du TAG...";
 
             try {
-                const res = await fetch('/api/admin/users', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload) });
+                const res = await fetch('/api/admin/users', { 
+                    method: 'POST', 
+                    headers: {'Content-Type': 'application/json'}, 
+                    body: JSON.stringify(payload) 
+                });
+                
                 if (res.ok) {
-                    msg.className = "text-sm font-medium text-emerald-400 mt-2 block"; msg.innerText = "Compte généré avec succès !";
+                    msg.className = "text-sm font-medium text-emerald-400 mt-2 block"; 
+                    msg.innerText = "Compte généré avec succès !";
                     document.getElementById('form-create-user').reset();
+                    // On réactive le champ service par défaut
+                    document.getElementById('user-service').disabled = false;
+                    document.getElementById('user-service').classList.remove('opacity-50', 'cursor-not-allowed');
                 } else {
-                    msg.className = "text-sm font-medium text-rose-400 mt-2 block"; msg.innerText = await res.text();
+                    msg.className = "text-sm font-medium text-rose-400 mt-2 block"; 
+                    msg.innerText = await res.text();
                 }
-            } catch (err) { msg.className = "text-sm font-medium text-rose-400 mt-2 block"; msg.innerText = "Erreur serveur."; }
+            } catch (err) { 
+                msg.className = "text-sm font-medium text-rose-400 mt-2 block"; 
+                msg.innerText = "Erreur serveur."; 
+            }
         });
 
         // Init
         loadServices();
+
+        // --- LOGIQUE DU MENU DÉROULANT ---
+        document.getElementById('user-role').addEventListener('change', (e) => {
+            const svcSelect = document.getElementById('user-service');
+            if (e.target.value === 'Admin') {
+                svcSelect.value = "";
+                svcSelect.disabled = true;
+                svcSelect.classList.add('opacity-50', 'cursor-not-allowed');
+            } else {
+                svcSelect.disabled = false;
+                svcSelect.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+        });
+
     </script>
 </body>
 </html>

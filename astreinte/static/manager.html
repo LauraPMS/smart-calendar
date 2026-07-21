@@ -6,7 +6,9 @@
     <title>Espace Manager - Astreintes</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        .taken-block .day-cell { background-color: rgba(225, 29, 72, 0.15); border-color: rgba(225, 29, 72, 0.3); }
+        .hover-block:hover .day-cell { background-color: rgba(99, 102, 241, 0.2); cursor: pointer; }
+        .selected-block .day-cell { background-color: rgba(79, 70, 229, 0.4); border-color: rgba(99, 102, 241, 0.6); }
+        .taken-block .day-cell { background-color: rgba(225, 29, 72, 0.15); border-color: rgba(225, 29, 72, 0.3); cursor: not-allowed; }
         .pending-block .day-cell { background-color: rgba(245, 158, 11, 0.15); border-color: rgba(245, 158, 11, 0.3); }
     </style>
 </head>
@@ -26,18 +28,15 @@
 
     <main class="flex-1 p-8 max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-3 gap-8">
         
-        <!-- COLONNE GAUCHE : Arbitrage & Équipe -->
+        <!-- COLONNE GAUCHE -->
         <div class="space-y-6 lg:col-span-1">
-            
-            <!-- PANNEAU 1 : DEMANDES EN ATTENTE -->
             <div class="bg-slate-950 border border-slate-800 rounded-xl p-6 shadow-sm">
-                <h2 class="text-lg font-bold text-slate-100 mb-4 border-b border-slate-800 pb-2">Demandes en attente</h2>
+                <h2 class="text-lg font-bold text-slate-100 mb-4 border-b border-slate-800 pb-2">Demandes de l'équipe</h2>
                 <div id="pending-requests" class="space-y-3 max-h-80 overflow-y-auto pr-2">
                     <p class="text-sm text-slate-500 italic">Chargement...</p>
                 </div>
             </div>
 
-            <!-- PANNEAU 2 : CRÉER UN UTILISATEUR -->
             <div class="bg-slate-950 border border-slate-800 rounded-xl p-6 shadow-sm">
                 <h2 class="text-lg font-bold text-slate-100 mb-4 border-b border-slate-800 pb-2">Ajouter un collaborateur</h2>
                 <form id="form-create-user" class="space-y-4">
@@ -59,12 +58,12 @@
             </div>
         </div>
 
-        <!-- COLONNE DROITE : Calendrier de l'équipe -->
+        <!-- COLONNE DROITE : Calendrier Interactif -->
         <div class="lg:col-span-2">
             <div class="flex justify-between items-end mb-6">
                 <div>
                     <h2 id="month-label" class="text-2xl font-bold capitalize text-slate-100">...</h2>
-                    <p class="text-sm text-slate-400 mt-1">Couverture des astreintes de votre service.</p>
+                    <p class="text-sm text-slate-400 mt-1">Couverture de votre service. Cliquez pour soumettre une disponibilité.</p>
                 </div>
                 <div class="flex gap-2">
                     <button onclick="changeMonth(-1)" class="bg-slate-800 hover:bg-slate-700 px-4 py-2 rounded-lg transition font-medium text-sm">&larr; Précédent</button>
@@ -72,36 +71,51 @@
                 </div>
             </div>
 
-            <!-- Grille du calendrier (Lecture seule pour la vue équipe) -->
+            <!-- Grille du calendrier -->
             <div class="grid grid-cols-7 gap-2 mb-2 text-center font-bold text-slate-400 text-sm">
                 <div>Lun</div><div>Mar</div><div>Mer</div><div>Jeu</div><div>Ven</div>
                 <div class="text-indigo-300">Sam</div><div class="text-indigo-300">Dim</div>
             </div>
             <div id="calendar-grid" class="flex flex-col gap-2"></div>
+
+            <!-- Panier du Manager -->
+            <div class="mt-6 flex justify-between items-center bg-slate-950 p-4 rounded-xl border border-slate-800 shadow-xl">
+                <div>
+                    <h3 class="font-bold text-sm text-slate-200">Mes disponibilités</h3>
+                    <p id="selection-count" class="text-xs text-slate-400 mt-1">0 bloc(s) sélectionné(s)</p>
+                </div>
+                <div class="flex items-center gap-4">
+                    <span id="submit-msg" class="text-sm font-medium hidden"></span>
+                    <button id="btn-submit" onclick="submitRequests()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 px-6 rounded-lg transition shadow-md shadow-indigo-500/20 disabled:opacity-50 disabled:cursor-not-allowed">
+                        Soumettre au service
+                    </button>
+                </div>
+            </div>
         </div>
 
     </main>
 
     <script>
-        // SÉCURITÉ
         const sessionId = localStorage.getItem('session_email');
         const sessionRole = localStorage.getItem('session_role');
         const serviceId = localStorage.getItem('session_service');
+        const sessionTag = localStorage.getItem('session_tag');
+        const userId = localStorage.getItem('session_userId');
         
         if (!sessionId || sessionRole !== 'Manager') {
             window.location.replace('/login.html');
         }
 
         document.getElementById('display-name').innerText = localStorage.getItem('session_name');
-        document.getElementById('display-tag').innerText = localStorage.getItem('session_tag');
+        document.getElementById('display-tag').innerText = "Manager"; // Affichage texte
 
         function logout() { localStorage.clear(); window.location.replace('/login.html'); }
 
         let currentDate = new Date();
         currentDate.setDate(1);
         let shiftsData = [];
+        let selectedBlocks = new Set(); // Panier du manager
 
-        // --- CHARGEMENT DES DONNÉES ---
         async function loadDashboard() {
             try {
                 const res = await fetch(`/api/shifts/${serviceId}`);
@@ -113,7 +127,6 @@
             } catch (err) { console.error(err); }
         }
 
-        // --- RENDU DES DEMANDES EN ATTENTE ---
         function renderPendingRequests() {
             const container = document.getElementById('pending-requests');
             const pending = shiftsData.filter(s => s.status === 'En attente');
@@ -126,12 +139,14 @@
             container.innerHTML = pending.map(req => {
                 const blockName = req.period_type === 'Semaine' ? 'Semaine du' : 'Week-end du';
                 const initials = req.user_name.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase();
+                // Si c'est la propre demande du manager, on met "Ma demande"
+                const nameDisplay = req.user_id == userId ? '<span class="text-amber-400">Ma demande</span>' : req.user_name;
                 
                 return `
                 <div class="bg-slate-900 border border-slate-700 p-3 rounded-lg">
                     <div class="flex justify-between items-start mb-3">
                         <div>
-                            <p class="text-sm font-bold text-slate-200">${req.user_name}</p>
+                            <p class="text-sm font-bold text-slate-200">${nameDisplay}</p>
                             <p class="text-xs text-slate-400">${blockName} <span class="text-indigo-300">${req.start_date}</span></p>
                         </div>
                         <span class="text-xs font-bold text-slate-900 px-1.5 py-0.5 rounded" style="background-color: ${req.user_tag};">${initials}</span>
@@ -144,7 +159,6 @@
             }).join('');
         }
 
-        // --- ARBITRAGE (ACCEPTER / REFUSER) ---
         async function updateShift(requestId, newStatus) {
             try {
                 await fetch('/api/manager/shifts/update', {
@@ -152,25 +166,41 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ request_id: requestId, new_status: newStatus })
                 });
-                loadDashboard(); // Rafraîchit les listes et le calendrier automatiquement
+                loadDashboard();
             } catch (err) { alert('Erreur serveur'); }
         }
 
-        // --- CALENDRIER ---
         function toISODate(date) {
             return date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0') + '-' + String(date.getDate()).padStart(2, '0');
         }
 
         function checkBlockState(type, dateStr) {
-            // On cherche d'abord s'il y a une demande validée
             const validated = shiftsData.find(s => s.period_type === type && s.start_date === dateStr && s.status === 'Validée');
             if (validated) return { status: 'Validée', color: validated.user_tag, name: validated.user_name };
             
-            // Sinon s'il y a des demandes en attente
             const pending = shiftsData.find(s => s.period_type === type && s.start_date === dateStr && s.status === 'En attente');
-            if (pending) return { status: 'En attente' };
+            if (pending) {
+                const isMine = (pending.user_tag === sessionTag);
+                return { status: 'En attente', isMine: isMine };
+            }
             
             return { status: 'Libre' };
+        }
+
+        function getStateClass(state, type, dateStr) {
+            if (state.status === 'Validée') return 'taken-block border border-rose-900/30';
+            if (state.status === 'En attente' && state.isMine) return 'pending-block border border-amber-900/30';
+            
+            const id = JSON.stringify({ period_type: type, start_date: dateStr });
+            if (selectedBlocks.has(id)) return 'selected-block border border-indigo-500/50';
+            
+            return 'border border-transparent';
+        }
+
+        function toggleSelection(type, dateStr) {
+            const id = JSON.stringify({ period_type: type, start_date: dateStr });
+            if (selectedBlocks.has(id)) { selectedBlocks.delete(id); } else { selectedBlocks.add(id); }
+            renderCalendar();
         }
 
         function renderCalendar() {
@@ -201,7 +231,11 @@
 
                 // Bloc Semaine
                 const weekWrapper = document.createElement('div');
-                weekWrapper.className = `col-span-5 grid grid-cols-5 gap-2 rounded-lg p-1 ${weekState.status === 'Validée' ? 'taken-block' : (weekState.status === 'En attente' ? 'pending-block' : '')}`;
+                weekWrapper.className = `col-span-5 grid grid-cols-5 gap-2 rounded-lg p-1 transition ${getStateClass(weekState, 'Semaine', mondayStr)}`;
+                if (weekState.status !== 'Validée') {
+                    weekWrapper.classList.add('hover-block');
+                    weekWrapper.onclick = () => toggleSelection('Semaine', mondayStr);
+                }
                 for (let d = 0; d < 5; d++) {
                     weekWrapper.appendChild(createDayCell(drawDate, month, weekState));
                     drawDate.setDate(drawDate.getDate() + 1);
@@ -209,7 +243,11 @@
 
                 // Bloc Weekend
                 const weekendWrapper = document.createElement('div');
-                weekendWrapper.className = `col-span-2 grid grid-cols-2 gap-2 rounded-lg p-1 ${weekendState.status === 'Validée' ? 'taken-block' : (weekendState.status === 'En attente' ? 'pending-block' : '')}`;
+                weekendWrapper.className = `col-span-2 grid grid-cols-2 gap-2 rounded-lg p-1 transition ${getStateClass(weekendState, 'Weekend', saturdayStr)}`;
+                if (weekendState.status !== 'Validée') {
+                    weekendWrapper.classList.add('hover-block');
+                    weekendWrapper.onclick = () => toggleSelection('Weekend', saturdayStr);
+                }
                 for (let d = 0; d < 2; d++) {
                     weekendWrapper.appendChild(createDayCell(drawDate, month, weekendState));
                     drawDate.setDate(drawDate.getDate() + 1);
@@ -221,6 +259,8 @@
 
                 if (drawDate.getMonth() !== month && week >= 4) break; 
             }
+            document.getElementById('selection-count').innerText = `${selectedBlocks.size} bloc(s) sélectionné(s)`;
+            document.getElementById('btn-submit').disabled = selectedBlocks.size === 0;
         }
 
         function createDayCell(dateObj, targetMonth, blockState) {
@@ -233,6 +273,8 @@
             if (blockState.status === 'Validée') {
                 const initials = blockState.name.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase();
                 div.innerHTML += `<span class="absolute bottom-0.5 text-[9px] font-bold text-slate-900 px-1 rounded" style="background-color: ${blockState.color};">${initials}</span>`;
+            } else if (blockState.status === 'En attente' && blockState.isMine) {
+                div.innerHTML += `<span class="absolute bottom-0.5 text-[9px] font-bold text-amber-400">En attente</span>`;
             }
 
             return div;
@@ -243,7 +285,37 @@
             renderCalendar();
         }
 
-        // --- CRÉATION UTILISATEUR ---
+        async function submitRequests() {
+            const btn = document.getElementById('btn-submit');
+            const msg = document.getElementById('submit-msg');
+            btn.disabled = true; msg.classList.remove('hidden');
+            msg.className = "text-sm font-medium text-slate-400 block"; msg.innerText = "Envoi...";
+
+            const requests = Array.from(selectedBlocks).map(idStr => {
+                const block = JSON.parse(idStr);
+                return fetch('/api/shifts', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        user_id: parseInt(userId),
+                        service_id: parseInt(serviceId),
+                        period_type: block.period_type,
+                        start_date: block.start_date
+                    })
+                });
+            });
+
+            try {
+                await Promise.all(requests);
+                msg.className = "text-sm font-medium text-emerald-400 block"; msg.innerText = "Demandes envoyées !";
+                selectedBlocks.clear();
+                setTimeout(() => { msg.classList.add('hidden'); loadDashboard(); }, 1500);
+            } catch (err) {
+                msg.className = "text-sm font-medium text-rose-400 block"; msg.innerText = "Erreur d'envoi.";
+                btn.disabled = false;
+            }
+        }
+
         document.getElementById('form-create-user').addEventListener('submit', async (e) => {
             e.preventDefault();
             const msg = document.getElementById('msg-user');
@@ -252,8 +324,8 @@
             const payload = {
                 name: document.getElementById('new-user-name').value.trim(),
                 email: document.getElementById('new-user-email').value.trim(),
-                role: 'User', // Force le rôle User
-                service_id: parseInt(serviceId), // Attache automatiquement au service du Manager
+                role: 'User',
+                service_id: parseInt(serviceId),
                 password_temp: document.getElementById('new-user-password').value.trim()
             };
 
@@ -266,15 +338,14 @@
 
                 if (res.ok) {
                     msg.className = "text-xs font-medium text-emerald-400 block";
-                    msg.innerText = "Collaborateur ajouté au service !";
+                    msg.innerText = "Collaborateur ajouté !";
                     document.getElementById('form-create-user').reset();
                 } else {
-                    msg.className = "text-xs font-medium text-rose-400 block"; msg.innerText = "Erreur (email déjà utilisé ?)";
+                    msg.className = "text-xs font-medium text-rose-400 block"; msg.innerText = "Erreur (email existant ?)";
                 }
             } catch (err) { msg.className = "text-xs font-medium text-rose-400 block"; msg.innerText = "Erreur serveur."; }
         });
 
-        // INIT
         loadDashboard();
     </script>
 </body>

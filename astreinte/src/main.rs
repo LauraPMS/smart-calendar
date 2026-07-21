@@ -12,6 +12,20 @@ async fn main() {
     let db_url = env::var("DATABASE_URL").expect("DATABASE_URL non trouvée");
     let pool = db::init_pool(&db_url).await.expect("Échec connexion BDD");
 
+    // --- SCRIPT DE MIGRATION TEMPORAIRE (À supprimer plus tard) ---
+    let users = sqlx::query!("SELECT user_id, name, user_tag FROM users").fetch_all(&pool).await.unwrap();
+    sqlx::query!("UPDATE users SET user_tag = 'X'").execute(&pool).await.unwrap();
+    for u in users {
+        // Si le tag ne commence pas par un #, c'est un ancien format !
+        if !u.user_tag.starts_with('#') {
+            let new_color = routes::auth::generate_user_tag(&u.name);
+            sqlx::query!("UPDATE users SET user_tag = ? WHERE user_id = ?", new_color, u.user_id)
+                .execute(&pool).await.unwrap();
+            println!("Tag mis à jour pour {} : {}", u.name, new_color);
+        }
+    }
+    // --------------------------------------------------------------
+
     let app = Router::new()
         // Auth
         .route("/api/login", post(routes::auth::login_user))
