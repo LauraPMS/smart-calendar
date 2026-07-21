@@ -3,9 +3,9 @@
 **/*.rs.bk
 
 # Variables d'environnement (Les clés de la maison)
-.env
+#.env
 
 # Base de données locale (On ne push pas les données réelles !)
-astreintes.db
-astreintes.db-shm
-astreintes.db-wal
+#astreintes.db
+#astreintes.db-shm
+#astreintes.db-wal

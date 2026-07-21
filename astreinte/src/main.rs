@@ -1,10 +1,6 @@
-use axum::{
-    routing::post,
-    Router,
-};
-use tower_http::services::ServeDir;
-use dotenvy::dotenv;
+use axum::{routing::{get, post}, Router};
 use std::env;
+use tower_http::services::ServeDir;
 
 mod db;
 mod models;
@@ -12,30 +8,26 @@ mod routes;
 
 #[tokio::main]
 async fn main() {
-    dotenv().ok();
-    let db_url = env::var("DATABASE_URL").expect("La variable DATABASE_URL est introuvable");
+    dotenvy::dotenv().ok();
+    let db_url = env::var("DATABASE_URL").expect("DATABASE_URL non trouvée");
+    let pool = db::init_pool(&db_url).await.expect("Échec connexion BDD");
 
-    println!("\n========================================");
-    println!("   URL DE LA BASE UTILISÉE : {}", db_url);
-    println!("========================================\n");
-
-    let pool = db::init_pool(&db_url).await.expect("Échec de la connexion à la base de données");
-    println!("Connecté à SQLite !");
-
-let app = Router::new()
-        .route("/api/users", post(routes::create_user))
-        .route("/api/login", post(routes::login_user))
-        .route("/api/change-password", post(routes::change_password))
-        .route("/api/requests", post(routes::create_request).get(routes::get_requests))
-        .route("/api/requests/update", post(routes::update_request_status)) // <-- AJOUT ICI
+    let app = Router::new()
+        // Auth
+        .route("/api/login", post(routes::auth::login_user))
+        .route("/api/change-password", post(routes::auth::change_password))     
+        // Admin
+        .route("/api/admin/services", post(routes::admin::create_service).get(routes::admin::get_services))
+        .route("/api/admin/users", post(routes::admin::create_user))
+        // Shifts
+        .route("/api/shifts", post(routes::user::create_shift_request))
+        .route("/api/shifts/{service_id}", get(routes::user::get_service_shifts))
+        .route("/api/manager/shifts/update", post(routes::manager::update_shift_status))
+        // Static Files
         .fallback_service(ServeDir::new("static"))
         .with_state(pool);
 
-    let listener = tokio::net::TcpListener::bind("127.0.0.1:3000")
-        .await
-        .unwrap();
-        
-    println!("Serveur démarré sur http://127.0.0.1:3000");
-
+    let listener = tokio::net::TcpListener::bind("127.0.0.1:3000").await.unwrap();
+    println!("🚀 Serveur lancé sur http://127.0.0.1:3000");
     axum::serve(listener, app).await.unwrap();
 }
