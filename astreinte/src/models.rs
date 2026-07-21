@@ -92,5 +92,6 @@ pub struct ShiftResponse {
     pub period_type: String,
     pub start_date: String,
     pub status: String,
-    pub user_tag: String, // Le fameux tag (ex: LPM-E8)
+    pub user_tag: String,
+    pub user_name: String,
 }

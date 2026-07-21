@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="fr" class="h-full bg-slate-900 text-slate-100">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Espace Manager - Astreintes</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .taken-block .day-cell { background-color: rgba(225, 29, 72, 0.15); border-color: rgba(225, 29, 72, 0.3); }
+        .pending-block .day-cell { background-color: rgba(245, 158, 11, 0.15); border-color: rgba(245, 158, 11, 0.3); }
+    </style>
+</head>
+<body class="h-full flex flex-col font-sans">
+
+    <header class="flex items-center justify-between border-b border-slate-800 bg-slate-950 px-6 py-4">
+        <div>
+            <h1 class="text-xl font-bold tracking-tight text-indigo-400">Gestion du Service</h1>
+            <p class="text-xs text-slate-500 mt-1">Espace Manager</p>
+        </div>
+        <div class="flex items-center gap-4">
+            <span class="text-sm font-bold bg-slate-800 px-3 py-1 rounded text-slate-300" id="display-tag"></span>
+            <span class="text-sm text-slate-400" id="display-name">...</span>
+            <a href="#" onclick="logout()" class="text-sm text-rose-400 hover:text-rose-300 underline decoration-rose-400/30 underline-offset-4 ml-4">Déconnexion</a>
+        </div>
+    </header>
+
+    <main class="flex-1 p-8 max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        <!-- COLONNE GAUCHE : Arbitrage & Équipe -->
+        <div class="space-y-6 lg:col-span-1">
+            
+            <!-- PANNEAU 1 : DEMANDES EN ATTENTE -->
+            <div class="bg-slate-950 border border-slate-800 rounded-xl p-6 shadow-sm">
+                <h2 class="text-lg font-bold text-slate-100 mb-4 border-b border-slate-800 pb-2">Demandes en attente</h2>
+                <div id="pending-requests" class="space-y-3 max-h-80 overflow-y-auto pr-2">
+                    <p class="text-sm text-slate-500 italic">Chargement...</p>
+                </div>
+            </div>
+
+            <!-- PANNEAU 2 : CRÉER UN UTILISATEUR -->
+            <div class="bg-slate-950 border border-slate-800 rounded-xl p-6 shadow-sm">
+                <h2 class="text-lg font-bold text-slate-100 mb-4 border-b border-slate-800 pb-2">Ajouter un collaborateur</h2>
+                <form id="form-create-user" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-1">Nom complet</label>
+                        <input type="text" id="new-user-name" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-1">Email</label>
+                        <input type="email" id="new-user-email" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-1">Mot de passe provisoire</label>
+                        <input type="password" id="new-user-password" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-indigo-500">
+                    </div>
+                    <div id="msg-user" class="text-xs font-medium hidden"></div>
+                    <button type="submit" class="w-full bg-slate-800 hover:bg-slate-700 text-indigo-400 font-semibold py-2 rounded-lg transition border border-slate-700">Créer le compte</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- COLONNE DROITE : Calendrier de l'équipe -->
+        <div class="lg:col-span-2">
+            <div class="flex justify-between items-end mb-6">
+                <div>
+                    <h2 id="month-label" class="text-2xl font-bold capitalize text-slate-100">...</h2>
+                    <p class="text-sm text-slate-400 mt-1">Couverture des astreintes de votre service.</p>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="changeMonth(-1)" class="bg-slate-800 hover:bg-slate-700 px-4 py-2 rounded-lg transition font-medium text-sm">&larr; Précédent</button>
+                    <button onclick="changeMonth(1)" class="bg-slate-800 hover:bg-slate-700 px-4 py-2 rounded-lg transition font-medium text-sm">Suivant &rarr;</button>
+                </div>
+            </div>
+
+            <!-- Grille du calendrier (Lecture seule pour la vue équipe) -->
+            <div class="grid grid-cols-7 gap-2 mb-2 text-center font-bold text-slate-400 text-sm">
+                <div>Lun</div><div>Mar</div><div>Mer</div><div>Jeu</div><div>Ven</div>
+                <div class="text-indigo-300">Sam</div><div class="text-indigo-300">Dim</div>
+            </div>
+            <div id="calendar-grid" class="flex flex-col gap-2"></div>
+        </div>
+
+    </main>
+
+    <script>
+        // SÉCURITÉ
+        const sessionId = localStorage.getItem('session_email');
+        const sessionRole = localStorage.getItem('session_role');
+        const serviceId = localStorage.getItem('session_service');
+        
+        if (!sessionId || sessionRole !== 'Manager') {
+            window.location.replace('/login.html');
+        }
+
+        document.getElementById('display-name').innerText = localStorage.getItem('session_name');
+        document.getElementById('display-tag').innerText = localStorage.getItem('session_tag');
+
+        function logout() { localStorage.clear(); window.location.replace('/login.html'); }
+
+        let currentDate = new Date();
+        currentDate.setDate(1);
+        let shiftsData = [];
+
+        // --- CHARGEMENT DES DONNÉES ---
+        async function loadDashboard() {
+            try {
+                const res = await fetch(`/api/shifts/${serviceId}`);
+                if (res.ok) {
+                    shiftsData = await res.json();
+                    renderPendingRequests();
+                    renderCalendar();
+                }
+            } catch (err) { console.error(err); }
+        }
+
+        // --- RENDU DES DEMANDES EN ATTENTE ---
+        function renderPendingRequests() {
+            const container = document.getElementById('pending-requests');
+            const pending = shiftsData.filter(s => s.status === 'En attente');
+            
+            if (pending.length === 0) {
+                container.innerHTML = '<p class="text-sm text-slate-500 italic">Aucune demande en attente.</p>';
+                return;
+            }
+
+            container.innerHTML = pending.map(req => {
+                const blockName = req.period_type === 'Semaine' ? 'Semaine du' : 'Week-end du';
+                const initials = req.user_name.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase();
+                
+                return `
+                <div class="bg-slate-900 border border-slate-700 p-3 rounded-lg">
+                    <div class="flex justify-between items-start mb-3">
+                        <div>
+                            <p class="text-sm font-bold text-slate-200">${req.user_name}</p>
+                            <p class="text-xs text-slate-400">${blockName} <span class="text-indigo-300">${req.start_date}</span></p>
+                        </div>
+                        <span class="text-xs font-bold text-slate-900 px-1.5 py-0.5 rounded" style="background-color: ${req.user_tag};">${initials}</span>
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="updateShift(${req.request_id}, 'Validée')" class="flex-1 bg-emerald-600/20 text-emerald-400 hover:bg-emerald-600/40 border border-emerald-500/50 text-xs font-bold py-1.5 rounded transition">Accepter</button>
+                        <button onclick="updateShift(${req.request_id}, 'Refusée')" class="flex-1 bg-rose-600/20 text-rose-400 hover:bg-rose-600/40 border border-rose-500/50 text-xs font-bold py-1.5 rounded transition">Refuser</button>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        // --- ARBITRAGE (ACCEPTER / REFUSER) ---
+        async function updateShift(requestId, newStatus) {
+            try {
+                await fetch('/api/manager/shifts/update', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ request_id: requestId, new_status: newStatus })
+                });
+                loadDashboard(); // Rafraîchit les listes et le calendrier automatiquement
+            } catch (err) { alert('Erreur serveur'); }
+        }
+
+        // --- CALENDRIER ---
+        function toISODate(date) {
+            return date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0') + '-' + String(date.getDate()).padStart(2, '0');
+        }
+
+        function checkBlockState(type, dateStr) {
+            // On cherche d'abord s'il y a une demande validée
+            const validated = shiftsData.find(s => s.period_type === type && s.start_date === dateStr && s.status === 'Validée');
+            if (validated) return { status: 'Validée', color: validated.user_tag, name: validated.user_name };
+            
+            // Sinon s'il y a des demandes en attente
+            const pending = shiftsData.find(s => s.period_type === type && s.start_date === dateStr && s.status === 'En attente');
+            if (pending) return { status: 'En attente' };
+            
+            return { status: 'Libre' };
+        }
+
+        function renderCalendar() {
+            const monthStr = currentDate.toLocaleString('fr-FR', { month: 'long', year: 'numeric' });
+            document.getElementById('month-label').innerText = monthStr;
+            
+            const grid = document.getElementById('calendar-grid');
+            grid.innerHTML = '';
+
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+            let firstDay = new Date(year, month, 1);
+            let startOffset = firstDay.getDay() - 1;
+            if (startOffset < 0) startOffset = 6;
+            let drawDate = new Date(year, month, 1 - startOffset);
+
+            for (let week = 0; week < 6; week++) {
+                const weekRow = document.createElement('div');
+                weekRow.className = 'grid grid-cols-7 gap-2';
+
+                const mondayStr = toISODate(drawDate);
+                let saturdayDate = new Date(drawDate);
+                saturdayDate.setDate(drawDate.getDate() + 5);
+                const saturdayStr = toISODate(saturdayDate);
+
+                let weekState = checkBlockState('Semaine', mondayStr);
+                let weekendState = checkBlockState('Weekend', saturdayStr);
+
+                // Bloc Semaine
+                const weekWrapper = document.createElement('div');
+                weekWrapper.className = `col-span-5 grid grid-cols-5 gap-2 rounded-lg p-1 ${weekState.status === 'Validée' ? 'taken-block' : (weekState.status === 'En attente' ? 'pending-block' : '')}`;
+                for (let d = 0; d < 5; d++) {
+                    weekWrapper.appendChild(createDayCell(drawDate, month, weekState));
+                    drawDate.setDate(drawDate.getDate() + 1);
+                }
+
+                // Bloc Weekend
+                const weekendWrapper = document.createElement('div');
+                weekendWrapper.className = `col-span-2 grid grid-cols-2 gap-2 rounded-lg p-1 ${weekendState.status === 'Validée' ? 'taken-block' : (weekendState.status === 'En attente' ? 'pending-block' : '')}`;
+                for (let d = 0; d < 2; d++) {
+                    weekendWrapper.appendChild(createDayCell(drawDate, month, weekendState));
+                    drawDate.setDate(drawDate.getDate() + 1);
+                }
+
+                weekRow.appendChild(weekWrapper);
+                weekRow.appendChild(weekendWrapper);
+                grid.appendChild(weekRow);
+
+                if (drawDate.getMonth() !== month && week >= 4) break; 
+            }
+        }
+
+        function createDayCell(dateObj, targetMonth, blockState) {
+            const div = document.createElement('div');
+            const isCurrentMonth = dateObj.getMonth() === targetMonth;
+            
+            div.className = `day-cell relative h-12 rounded-md border border-slate-800 flex flex-col items-center justify-center transition-colors ${isCurrentMonth ? 'bg-slate-900' : 'bg-slate-950/50 text-slate-600'}`;
+            div.innerHTML = `<span class="text-sm font-bold">${dateObj.getDate()}</span>`;
+            
+            if (blockState.status === 'Validée') {
+                const initials = blockState.name.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase();
+                div.innerHTML += `<span class="absolute bottom-0.5 text-[9px] font-bold text-slate-900 px-1 rounded" style="background-color: ${blockState.color};">${initials}</span>`;
+            }
+
+            return div;
+        }
+
+        function changeMonth(offset) {
+            currentDate.setMonth(currentDate.getMonth() + offset);
+            renderCalendar();
+        }
+
+        // --- CRÉATION UTILISATEUR ---
+        document.getElementById('form-create-user').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const msg = document.getElementById('msg-user');
+            msg.classList.remove('hidden'); msg.innerText = "Création..."; msg.className = "text-xs font-medium text-slate-400 block";
+
+            const payload = {
+                name: document.getElementById('new-user-name').value.trim(),
+                email: document.getElementById('new-user-email').value.trim(),
+                role: 'User', // Force le rôle User
+                service_id: parseInt(serviceId), // Attache automatiquement au service du Manager
+                password_temp: document.getElementById('new-user-password').value.trim()
+            };
+
+            try {
+                const res = await fetch('/api/admin/users', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (res.ok) {
+                    msg.className = "text-xs font-medium text-emerald-400 block";
+                    msg.innerText = "Collaborateur ajouté au service !";
+                    document.getElementById('form-create-user').reset();
+                } else {
+                    msg.className = "text-xs font-medium text-rose-400 block"; msg.innerText = "Erreur (email déjà utilisé ?)";
+                }
+            } catch (err) { msg.className = "text-xs font-medium text-rose-400 block"; msg.innerText = "Erreur serveur."; }
+        });
+
+        // INIT
+        loadDashboard();
+    </script>
+</body>
+</html>

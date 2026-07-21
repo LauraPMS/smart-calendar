@@ -7,22 +7,23 @@ use crate::models::{LoginPayload, LoginResponse, ChangePasswordPayload};
 
 // Fonction helper pour générer un tag unique court (ex: LPM-A4)
 pub fn generate_user_tag(name: &str) -> String {
-    let parts: Vec<&str> = name.split_whitespace().collect();
-    let prefix = if parts.len() >= 2 {
-        format!(
-            "{}{}",
-            parts[0].chars().next().unwrap_or('X'),
-            parts[1].chars().next().unwrap_or('X')
-        )
-    } else if let Some(first) = parts.first() {
-        first.chars().take(2).collect::<String>()
-    } else {
-        "XX".to_string()
-    };
+    // On extrait le prénom (le premier mot)
+    let first_name = name.split_whitespace().next().unwrap_or("X");
+    
+    // On additionne la valeur ASCII des lettres pour créer une empreinte unique
+    let mut hash: usize = 0;
+    for (i, c) in first_name.chars().enumerate() {
+        hash = hash.wrapping_add((c as usize).wrapping_mul(i + 1));
+    }
+    
+    // Application du "plancher" (offset de 127) pour éviter les couleurs sombres.
+    // La valeur sera toujours comprise entre 127 et 255.
+    let r = (hash % 128) + 127;
+    let g = ((hash / 3) % 128) + 127;
+    let b = ((hash / 7) % 128) + 127;
 
-    let mut rng = rand::thread_rng();
-    let random_hex: u8 = rng.r#gen();
-    format!("{}-{:02X}", prefix.to_uppercase(), random_hex)
+    // Retourne le code hexadécimal (ex: #A3C5F1)
+    format!("#{:02X}{:02X}{:02X}", r, g, b)
 }
 
 pub async fn login_user(
