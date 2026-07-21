@@ -6,223 +6,212 @@
     <title>Administration DSI - Astreintes</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
-        // SÉCURITÉ : Redirection si non connecté ou si ce n'est pas un Admin
         const sessionName = localStorage.getItem('session_name');
         const sessionRole = localStorage.getItem('session_role');
-        if (!sessionName || sessionRole !== 'Admin') { 
-            window.location.replace('/login.html'); 
-        }
+        if (!sessionName || sessionRole !== 'Admin') { window.location.replace('/login.html'); }
     </script>
 </head>
 <body class="h-full flex flex-col font-sans">
 
-    <!-- Navbar -->
     <header class="flex items-center justify-between border-b border-slate-800 bg-slate-950 px-6 py-4">
         <h1 class="text-xl font-bold tracking-tight text-indigo-400">Administration Globale DSI</h1>
         <div class="flex items-center gap-4">
             <span class="text-sm text-slate-400">Connecté en tant que : <strong class="text-slate-200" id="display-name">...</strong></span>
-            <a href="#" onclick="logout(); return false;" class="text-sm text-rose-400 hover:text-rose-300 transition underline decoration-rose-400/30 underline-offset-4 ml-4">Déconnexion</a>
+            <a href="#" onclick="logout(); return false;" class="text-sm text-rose-400 hover:text-rose-300 underline ml-4">Déconnexion</a>
         </div>
     </header>
 
     <main class="flex-1 p-8 overflow-y-auto max-w-6xl mx-auto w-full grid grid-cols-1 md:grid-cols-2 gap-8">
         
-        <!-- COLONNE GAUCHE : GESTION DES SERVICES -->
+        <!-- SERVICES -->
         <div class="space-y-6">
             <div class="bg-slate-950 border border-slate-800 rounded-xl p-6 shadow-sm">
                 <h2 class="text-lg font-bold text-slate-100 mb-4 border-b border-slate-800 pb-2">Créer un nouveau Service</h2>
                 <form id="form-create-service" class="space-y-4">
                     <div>
-                        <label class="block text-sm font-medium text-slate-400 mb-1">Nom complet du service</label>
-                        <input type="text" id="svc-name" placeholder="ex: Cybersécurité CSIT" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-slate-200 focus:outline-none focus:border-indigo-500">
+                        <input type="text" id="svc-name" placeholder="Nom du service (ex: Réseaux)" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-slate-200 focus:outline-none focus:border-indigo-500">
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-slate-400 mb-1">Tag (Identifiant court)</label>
-                        <input type="text" id="svc-tag" placeholder="ex: SSI" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-slate-200 focus:outline-none focus:border-indigo-500 uppercase">
+                        <input type="text" id="svc-tag" placeholder="Tag court (ex: RES)" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-slate-200 uppercase focus:outline-none focus:border-indigo-500">
                     </div>
                     <div id="msg-service" class="text-sm font-medium hidden"></div>
-                    <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-2 rounded-lg transition shadow-md mt-2">Ajouter le Service</button>
+                    <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-2 rounded-lg transition shadow-md">Ajouter le Service</button>
                 </form>
             </div>
 
-            <!-- Liste des services existants -->
             <div class="bg-slate-950 border border-slate-800 rounded-xl p-6 shadow-sm">
                 <h2 class="text-lg font-bold text-slate-100 mb-4 border-b border-slate-800 pb-2">Services Actifs</h2>
-                <div id="services-list" class="space-y-2 max-h-64 overflow-y-auto pr-2">
+                <div id="services-list" class="space-y-2 max-h-48 overflow-y-auto pr-2">
                     <p class="text-sm text-slate-500 italic">Chargement...</p>
                 </div>
             </div>
         </div>
 
-        <!-- COLONNE DROITE : GESTION DES COMPTES -->
+        <!-- CRÉATION UTILISATEUR -->
         <div class="bg-slate-950 border border-slate-800 rounded-xl p-6 shadow-sm h-fit">
-            <h2 class="text-lg font-bold text-slate-100 mb-4 border-b border-slate-800 pb-2">Créer un Compte Collaborateur</h2>
+            <h2 class="text-lg font-bold text-slate-100 mb-4 border-b border-slate-800 pb-2">Créer un Compte</h2>
             <form id="form-create-user" class="space-y-4">
-                <div>
-                    <label class="block text-sm font-medium text-slate-400 mb-1">Nom complet</label>
-                    <input type="text" id="user-name" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-slate-200 focus:outline-none focus:border-emerald-500">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-slate-400 mb-1">Email</label>
-                    <input type="email" id="user-email" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-slate-200 focus:outline-none focus:border-emerald-500">
-                </div>
+                <input type="text" id="user-name" placeholder="Nom complet" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-slate-200">
+                <input type="email" id="user-email" placeholder="Email professionnel" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-slate-200">
+                
                 <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium text-slate-400 mb-1">Rôle</label>
-                        <select id="user-role" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-slate-200 focus:outline-none focus:border-emerald-500">
-                            <option value="User">Utilisateur</option>
-                            <option value="Manager">Manager</option>
-                            <option value="Admin">Administrateur Global</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-slate-400 mb-1">Service d'affectation</label>
-                        <select id="user-service" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-slate-200 focus:outline-none focus:border-emerald-500">
-                            <option value="">-- Aucun (Admin) --</option>
-                            <!-- Rempli dynamiquement par JS -->
-                        </select>
-                    </div>
+                    <select id="user-role" class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-slate-200">
+                        <option value="User">Utilisateur</option>
+                        <option value="Manager">Manager</option>
+                        <option value="Admin">Administrateur</option>
+                    </select>
+                    <select id="user-service" class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-slate-200">
+                        <option value="">-- Aucun --</option>
+                    </select>
                 </div>
-                <div>
-                    <label class="block text-sm font-medium text-slate-400 mb-1">Mot de passe provisoire</label>
-                    <input type="password" id="user-password" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-slate-200 focus:outline-none focus:border-emerald-500">
-                </div>
-
+                
+                <input type="password" id="user-password" placeholder="Mot de passe provisoire" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-slate-200">
+                
                 <div id="msg-user" class="text-sm font-medium hidden"></div>
-                <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-2 rounded-lg transition shadow-md mt-4">Créer le profil</button>
+                <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-2 rounded-lg transition shadow-md">Créer le profil</button>
             </form>
         </div>
 
+        <!-- LISTE GLOBALE DES COMPTES -->
+        <div class="col-span-1 md:col-span-2 bg-slate-950 border border-slate-800 rounded-xl p-6 shadow-sm">
+            <h2 class="text-lg font-bold text-slate-100 mb-4 border-b border-slate-800 pb-2">Gestion des Utilisateurs</h2>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="border-b border-slate-800 text-sm text-slate-400">
+                            <th class="py-3 px-4 font-medium">Tag</th>
+                            <th class="py-3 px-4 font-medium">Nom</th>
+                            <th class="py-3 px-4 font-medium">Email</th>
+                            <th class="py-3 px-4 font-medium">Rôle</th>
+                            <th class="py-3 px-4 font-medium">Service</th>
+                            <th class="py-3 px-4 font-medium text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="users-list" class="text-sm">
+                        <tr><td colspan="6" class="text-center text-slate-500 py-4 italic">Chargement...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </main>
 
     <script>
         document.getElementById('display-name').innerText = sessionName;
+        const myUserId = parseInt(localStorage.getItem('session_userId'));
 
-        function logout() { 
-            localStorage.clear(); 
-            window.location.href = '/login.html'; 
-        }
+        function logout() { localStorage.clear(); window.location.href = '/login.html'; }
 
-        // --- CHARGEMENT DES SERVICES ---
+        // --- SERVICES ---
         async function loadServices() {
             try {
-                const response = await fetch('/api/admin/services');
-                if (response.ok) {
-                    const services = await response.json();
-                    
-                    // Mise à jour de la liste visuelle
+                const res = await fetch('/api/admin/services?t=' + Date.now());
+                if (res.ok) {
+                    const services = await res.json();
                     const listDiv = document.getElementById('services-list');
-                    if (services.length === 0) {
-                        listDiv.innerHTML = '<p class="text-sm text-slate-500 italic">Aucun service créé.</p>';
-                    } else {
-                        listDiv.innerHTML = services.map(s => `
-                            <div class="flex items-center justify-between bg-slate-900 p-3 rounded-lg border border-slate-800">
-                                <span class="font-medium text-slate-200">${s.name}</span>
-                                <span class="text-xs font-bold bg-indigo-500/20 text-indigo-400 px-2 py-1 rounded border border-indigo-500/30">${s.tag}</span>
-                            </div>
-                        `).join('');
-                    }
-
-                    // Mise à jour du menu déroulant (pour affecter un User à un Service)
-                    const selectService = document.getElementById('user-service');
-                    selectService.innerHTML = '<option value="">-- Aucun (DSI Globale) --</option>' + 
-                        services.map(s => `<option value="${s.service_id}">${s.name} ${s.tag}</option>`).join('');
+                    const selectSvc = document.getElementById('user-service');
+                    
+                    listDiv.innerHTML = services.length === 0 ? '<p class="text-sm text-slate-500">Aucun service.</p>' 
+                        : services.map(s => `<div class="flex justify-between bg-slate-900 p-2 rounded border border-slate-800 mb-2"><span>${s.name}</span><span class="text-xs font-bold text-indigo-400">${s.tag}</span></div>`).join('');
+                    
+                    selectSvc.innerHTML = '<option value="">-- Aucun --</option>' + services.map(s => `<option value="${s.service_id}">${s.name}</option>`).join('');
                 }
-            } catch (err) {
-                console.error("Erreur chargement services:", err);
-            }
+            } catch (e) {}
         }
 
-        // --- CREATION SERVICE ---
         document.getElementById('form-create-service').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const payload = {
-                name: document.getElementById('svc-name').value.trim(),
-                tag: document.getElementById('svc-tag').value.trim()
-            };
             const msg = document.getElementById('msg-service');
-            msg.className = "text-sm font-medium text-slate-400 mt-2 block"; msg.innerText = "Création...";
-
+            msg.className = "text-sm text-slate-400 block"; msg.innerText = "Création...";
             try {
-                const res = await fetch('/api/admin/services', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload) });
-                if (res.ok) {
-                    msg.className = "text-sm font-medium text-emerald-400 mt-2 block"; msg.innerText = "Service ajouté !";
-                    document.getElementById('form-create-service').reset();
-                    loadServices(); // Rafraîchit la liste et le menu déroulant
-                } else {
-                    msg.className = "text-sm font-medium text-rose-400 mt-2 block"; msg.innerText = await res.text();
-                }
-            } catch (err) { msg.className = "text-sm font-medium text-rose-400 mt-2 block"; msg.innerText = "Erreur serveur."; }
+                const res = await fetch('/api/admin/services', { 
+                    method: 'POST', headers: {'Content-Type': 'application/json'}, 
+                    body: JSON.stringify({ name: document.getElementById('svc-name').value, tag: document.getElementById('svc-tag').value }) 
+                });
+                if (res.ok) { msg.className = "text-sm text-emerald-400 block"; msg.innerText = "Service ajouté !"; document.getElementById('form-create-service').reset(); loadServices(); }
+            } catch (err) {}
         });
 
-        // --- CREATION UTILISATEUR ---
-        // --- CREATION UTILISATEUR ---
+        // --- UTILISATEURS ---
+        document.getElementById('user-role').addEventListener('change', (e) => {
+            const svcSelect = document.getElementById('user-service');
+            if (e.target.value === 'Admin') { svcSelect.value = ""; svcSelect.disabled = true; svcSelect.classList.add('opacity-50'); } 
+            else { svcSelect.disabled = false; svcSelect.classList.remove('opacity-50'); }
+        });
+
         document.getElementById('form-create-user').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const serviceVal = document.getElementById('user-service').value;
             const roleVal = document.getElementById('user-role').value;
+            const serviceVal = document.getElementById('user-service').value;
             const msg = document.getElementById('msg-user');
             
-            // SÉCURITÉ : On bloque si User ou Manager n'ont pas de service
             if (roleVal !== 'Admin' && !serviceVal) {
-                msg.classList.remove('hidden');
-                msg.className = "text-sm font-medium text-amber-400 mt-2 block"; 
-                msg.innerText = "Action refusée : Un service doit obligatoirement être sélectionné.";
-                return;
+                msg.className = "text-sm text-amber-400 block"; msg.innerText = "Un service est obligatoire pour ce rôle."; return;
             }
             
-            const payload = {
-                name: document.getElementById('user-name').value.trim(),
-                email: document.getElementById('user-email').value.trim(),
-                role: roleVal,
-                service_id: roleVal === 'Admin' ? null : parseInt(serviceVal), // Force le NULL si Admin
-                password_temp: document.getElementById('user-password').value.trim()
-            };
-            
-            msg.classList.remove('hidden');
-            msg.className = "text-sm font-medium text-slate-400 mt-2 block"; 
-            msg.innerText = "Génération du compte et du TAG...";
-
+            msg.className = "text-sm text-slate-400 block"; msg.innerText = "Création...";
             try {
                 const res = await fetch('/api/admin/users', { 
-                    method: 'POST', 
-                    headers: {'Content-Type': 'application/json'}, 
-                    body: JSON.stringify(payload) 
+                    method: 'POST', headers: {'Content-Type': 'application/json'}, 
+                    body: JSON.stringify({
+                        name: document.getElementById('user-name').value,
+                        email: document.getElementById('user-email').value,
+                        role: roleVal,
+                        service_id: roleVal === 'Admin' ? null : parseInt(serviceVal),
+                        password_temp: document.getElementById('user-password').value
+                    }) 
                 });
                 
                 if (res.ok) {
-                    msg.className = "text-sm font-medium text-emerald-400 mt-2 block"; 
-                    msg.innerText = "Compte généré avec succès !";
+                    msg.className = "text-sm text-emerald-400 block"; msg.innerText = "Compte créé !";
                     document.getElementById('form-create-user').reset();
-                    // On réactive le champ service par défaut
-                    document.getElementById('user-service').disabled = false;
-                    document.getElementById('user-service').classList.remove('opacity-50', 'cursor-not-allowed');
-                } else {
-                    msg.className = "text-sm font-medium text-rose-400 mt-2 block"; 
-                    msg.innerText = await res.text();
+                    document.getElementById('user-service').disabled = false; document.getElementById('user-service').classList.remove('opacity-50');
+                    loadUsers(); // Met à jour le tableau !
+                } else { msg.className = "text-sm text-rose-400 block"; msg.innerText = await res.text(); }
+            } catch (err) {}
+        });
+
+        async function loadUsers() {
+            try {
+                const res = await fetch('/api/admin/users?t=' + Date.now());                
+                if (res.ok) {
+                    const users = await res.json();
+                    const tbody = document.getElementById('users-list');
+                    
+                    tbody.innerHTML = users.map(u => {
+                        const initials = u.name.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase();
+                        const isMe = u.user_id === myUserId;
+                        
+                        // Badge de rôle coloré
+                        const roleBadge = u.role === 'Admin' ? 'bg-amber-500/20 text-amber-400' : (u.role === 'Manager' ? 'bg-indigo-500/20 text-indigo-400' : 'bg-slate-800 text-slate-300');
+                        
+                        return `
+                        <tr class="border-b border-slate-800/50 hover:bg-slate-900/50 transition">
+                            <td class="py-3 px-4"><span class="text-[10px] font-bold text-slate-900 px-1.5 py-0.5 rounded" style="background-color: ${u.user_tag};">${initials}</span></td>
+                            <td class="py-3 px-4 font-medium text-slate-200">${u.name}</td>
+                            <td class="py-3 px-4 text-slate-400">${u.email}</td>
+                            <td class="py-3 px-4"><span class="px-2 py-1 rounded text-xs font-bold ${roleBadge}">${u.role}</span></td>
+                            <td class="py-3 px-4 text-slate-400">${u.service_name || '-'}</td>
+                            <td class="py-3 px-4 text-right">
+                                ${isMe ? `<span class="text-xs text-slate-500 italic pr-2">C'est vous</span>` 
+                                       : `<button onclick="deleteUser(${u.user_id}, '${u.name}')" class="bg-rose-500/10 text-rose-400 border border-rose-500/20 hover:bg-rose-500/30 px-3 py-1.5 rounded transition font-medium text-xs">Supprimer</button>`}
+                            </td>
+                        </tr>`;
+                    }).join('');
                 }
-            } catch (err) { 
-                msg.className = "text-sm font-medium text-rose-400 mt-2 block"; 
-                msg.innerText = "Erreur serveur."; 
-            }
-        });
+            } catch(e) {}
+        }
 
-        // Init
+        async function deleteUser(id, name) {
+            if (!confirm(`Êtes-vous sûr de vouloir supprimer définitivement ${name} ?`)) return;
+            try {
+                const res = await fetch(`/api/admin/users/${id}`, { method: 'DELETE' });
+                if (res.ok) { loadUsers(); } 
+                else { alert('Erreur lors de la suppression'); }
+            } catch(e) { alert('Erreur serveur'); }
+        }
+
         loadServices();
-
-        // --- LOGIQUE DU MENU DÉROULANT ---
-        document.getElementById('user-role').addEventListener('change', (e) => {
-            const svcSelect = document.getElementById('user-service');
-            if (e.target.value === 'Admin') {
-                svcSelect.value = "";
-                svcSelect.disabled = true;
-                svcSelect.classList.add('opacity-50', 'cursor-not-allowed');
-            } else {
-                svcSelect.disabled = false;
-                svcSelect.classList.remove('opacity-50', 'cursor-not-allowed');
-            }
-        });
-
+        loadUsers();
     </script>
 </body>
 </html>

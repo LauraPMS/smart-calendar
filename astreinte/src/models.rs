@@ -95,3 +95,13 @@ pub struct ShiftResponse {
     pub user_tag: String,
     pub user_name: String,
 }
+
+#[derive(Serialize, Debug, sqlx::FromRow)]
+pub struct UserSummary {
+    pub user_id: i64,
+    pub name: String,
+    pub email: String,
+    pub role: String,
+    pub service_name: Option<String>,
+    pub user_tag: String,
+}
