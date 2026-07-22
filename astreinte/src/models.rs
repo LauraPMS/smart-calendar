@@ -92,5 +92,16 @@ pub struct ShiftResponse {
     pub period_type: String,
     pub start_date: String,
     pub status: String,
-    pub user_tag: String, // Le fameux tag (ex: LPM-E8)
+    pub user_tag: String,
+    pub user_name: String,
+}
+
+#[derive(Serialize, Debug, sqlx::FromRow)]
+pub struct UserSummary {
+    pub user_id: i64,
+    pub name: String,
+    pub email: String,
+    pub role: String,
+    pub service_name: Option<String>,
+    pub user_tag: String,
 }

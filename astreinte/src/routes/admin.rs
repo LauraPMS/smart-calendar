@@ -1,4 +1,4 @@
-use axum::{extract::State, http::StatusCode, response::IntoResponse, Json};
+use axum::{extract::{State, Path}, http::StatusCode, response::IntoResponse, Json};
 use bcrypt::{hash, DEFAULT_COST};
 use sqlx::SqlitePool;
 
@@ -65,5 +65,45 @@ pub async fn create_user(
     match res {
         Ok(_) => (StatusCode::CREATED, "Compte créé").into_response(),
         Err(e) => (StatusCode::BAD_REQUEST, format!("Erreur : {}", e)).into_response(),
+    }
+}
+
+// Récupère la liste de tous les utilisateurs (avec le nom de leur service)
+// Récupère la liste de tous les utilisateurs (avec le nom de leur service)
+pub async fn get_users(State(pool): State<SqlitePool>) -> impl IntoResponse {
+    let users = sqlx::query_as!(
+        crate::models::UserSummary,
+        r#"
+        SELECT u.user_id, u.name, u.email, u.role, s.name as "service_name?", u.user_tag
+        FROM users u
+        LEFT JOIN services s ON u.service_id = s.service_id
+        ORDER BY u.role, u.name
+        "#
+    )
+    .fetch_all(&pool)
+    .await;
+
+    match users {
+        Ok(list) => (StatusCode::OK, Json(list)).into_response(),
+        Err(e) => {
+            // Petit bonus : on affiche l'erreur exacte dans le terminal si ça plante à nouveau
+            println!("Erreur SQL lors de la récupération des utilisateurs : {:?}", e);
+            (StatusCode::INTERNAL_SERVER_ERROR, "Erreur BDD").into_response()
+        }
+    }
+}
+
+// Supprime un utilisateur via son ID
+pub async fn delete_user(
+    State(pool): State<SqlitePool>,
+    Path(user_id): Path<i64>,
+) -> impl IntoResponse {
+    let res = sqlx::query!("DELETE FROM users WHERE user_id = ?", user_id)
+        .execute(&pool)
+        .await;
+
+    match res {
+        Ok(_) => (StatusCode::OK, "Utilisateur supprimé").into_response(),
+        Err(_) => (StatusCode::INTERNAL_SERVER_ERROR, "Erreur lors de la suppression").into_response(),
     }
 }

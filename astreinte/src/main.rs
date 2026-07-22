@@ -1,4 +1,4 @@
-use axum::{routing::{get, post}, Router};
+use axum::{routing::{get, post, delete}, Router};
 use std::env;
 use tower_http::services::ServeDir;
 
@@ -18,7 +18,8 @@ async fn main() {
         .route("/api/change-password", post(routes::auth::change_password))     
         // Admin
         .route("/api/admin/services", post(routes::admin::create_service).get(routes::admin::get_services))
-        .route("/api/admin/users", post(routes::admin::create_user))
+        .route("/api/admin/users", post(routes::admin::create_user).get(routes::admin::get_users))        
+        .route("/api/admin/users/{user_id}", delete(routes::admin::delete_user))
         // Shifts
         .route("/api/shifts", post(routes::user::create_shift_request))
         .route("/api/shifts/{service_id}", get(routes::user::get_service_shifts))

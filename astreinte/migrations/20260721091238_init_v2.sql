@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS users (
     email TEXT NOT NULL UNIQUE,
     password_hash TEXT NOT NULL,
     role TEXT NOT NULL, -- 'Admin', 'Manager', 'User'
-    user_tag TEXT NOT NULL UNIQUE, -- Identifiant visuel court (ex: LPM-4B)
+    user_tag VARCHAR(50) NOT NULL,
     must_change_password BOOLEAN NOT NULL DEFAULT 1,
     FOREIGN KEY (service_id) REFERENCES services(service_id)
 );

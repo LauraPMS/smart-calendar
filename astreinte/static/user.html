@@ -176,34 +176,7 @@
             updateSelectionUI();
         }
 
-        // Créer une petite case de jour
-        function createDayCell(dateObj, targetMonth, blockState) {
-            const div = document.createElement('div');
-            const isCurrentMonth = dateObj.getMonth() === targetMonth;
-            
-            div.className = `day-cell relative h-16 rounded-md border border-slate-800 flex flex-col items-center justify-center transition-colors ${isCurrentMonth ? 'bg-slate-900' : 'bg-slate-950/50 text-slate-600'}`;
-            
-            div.innerHTML = `<span class="text-lg font-bold">${dateObj.getDate()}</span>`;
-            
-            // Si le bloc est validé, on affiche le Tag de la personne
-            if (blockState.status === 'Validée') {
-                div.innerHTML += `<span class="absolute bottom-1 text-[10px] font-bold text-rose-300 bg-rose-500/20 px-1.5 rounded">${blockState.tag}</span>`;
-            } else if (blockState.status === 'En attente' && blockState.isMine) {
-                div.innerHTML += `<span class="absolute bottom-1 text-[10px] font-bold text-amber-400">En attente</span>`;
-            }
-
-            return div;
-        }
-
-        // Vérifie la BDD pour un bloc précis
-        function checkBlockState(type, dateStr) {
-            const shift = shiftsData.find(s => s.period_type === type && s.start_date === dateStr);
-            if (!shift) return { status: 'Libre' };
-            
-            // On vérifie si c'est MA demande
-            const isMine = (shift.user_tag === sessionTag);
-            return { status: shift.status, tag: shift.user_tag, isMine };
-        }
+       
 
         // Gérer les classes CSS en fonction de l'état
         function getStateClass(state, type, dateStr) {
@@ -278,6 +251,41 @@
                 msg.innerText = "Erreur lors de l'envoi.";
                 btn.disabled = false;
             }
+        }
+
+        // Extrait les initiales (ex: "Jans Guillopé" -> "JG")
+        function getInitials(name) {
+            return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+        }
+
+        // Vérifie la BDD pour un bloc précis
+        function checkBlockState(type, dateStr) {
+            const shift = shiftsData.find(s => s.period_type === type && s.start_date === dateStr);
+            if (!shift) return { status: 'Libre' };
+            
+            const isMine = (shift.user_tag === sessionTag);
+            // On retourne la couleur et le nom
+            return { status: shift.status, color: shift.user_tag, name: shift.user_name, isMine }; 
+        }
+
+        // Créer une petite case de jour
+        function createDayCell(dateObj, targetMonth, blockState) {
+            const div = document.createElement('div');
+            const isCurrentMonth = dateObj.getMonth() === targetMonth;
+            
+            div.className = `day-cell relative h-16 rounded-md border border-slate-800 flex flex-col items-center justify-center transition-colors ${isCurrentMonth ? 'bg-slate-900' : 'bg-slate-950/50 text-slate-600'}`;
+            
+            div.innerHTML = `<span class="text-lg font-bold">${dateObj.getDate()}</span>`;
+            
+            // Si le bloc est validé, on injecte la couleur Hex en background (style="") et on écrit les initiales en foncé par-dessus
+            if (blockState.status === 'Validée') {
+                const initials = getInitials(blockState.name);
+                div.innerHTML += `<span class="absolute bottom-1 text-[10px] font-bold text-slate-900 px-1.5 rounded" style="background-color: ${blockState.color};">${initials}</span>`;
+            } else if (blockState.status === 'En attente' && blockState.isMine) {
+                div.innerHTML += `<span class="absolute bottom-1 text-[10px] font-bold text-amber-400">En attente</span>`;
+            }
+
+            return div;
         }
 
         // INIT

@@ -29,7 +29,8 @@ pub async fn get_service_shifts(
 ) -> impl IntoResponse {
     let shifts = sqlx::query_as!(
         ShiftResponse,
-        "SELECT r.request_id, r.user_id, r.service_id, r.period_type, r.start_date, r.status, u.user_tag 
+        // On sélectionne u.name en plus
+        "SELECT r.request_id, r.user_id, r.service_id, r.period_type, r.start_date, r.status, u.user_tag, u.name as user_name 
          FROM shift_requests r 
          JOIN users u ON r.user_id = u.user_id 
          WHERE r.service_id = ?",
