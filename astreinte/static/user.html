@@ -258,14 +258,22 @@
             return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
         }
 
-        // Vérifie la BDD pour un bloc précis
+        // Vérifie la BDD pour un bloc précis (Correction de priorité)
         function checkBlockState(type, dateStr) {
-            const shift = shiftsData.find(s => s.period_type === type && s.start_date === dateStr);
-            if (!shift) return { status: 'Libre' };
+            // 1. PRIORITÉ MAXIMALE : On cherche si le bloc est validé (pour moi ou un collègue)
+            const validated = shiftsData.find(s => s.period_type === type && s.start_date === dateStr && s.status === 'Validée');
+            if (validated) {
+                return { status: 'Validée', color: validated.user_tag, name: validated.user_name, isMine: validated.user_tag === sessionTag };
+            }
             
-            const isMine = (shift.user_tag === sessionTag);
-            // On retourne la couleur et le nom
-            return { status: shift.status, color: shift.user_tag, name: shift.user_name, isMine }; 
+            // 2. Sinon, on cherche si J'AI une demande en attente
+            const myPending = shiftsData.find(s => s.period_type === type && s.start_date === dateStr && s.status === 'En attente' && s.user_tag === sessionTag);
+            if (myPending) {
+                return { status: 'En attente', isMine: true };
+            }
+            
+            // 3. Sinon, le bloc est totalement libre
+            return { status: 'Libre' };
         }
 
         // Créer une petite case de jour
